@@ -2,7 +2,7 @@
 <html lang="nb">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, shrink-to-fit=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Lekeplassen">
@@ -78,7 +78,7 @@ canvas{-webkit-transition:opacity .6s;transition:opacity .6s}
 .word{font-size:110px;font-weight:800;letter-spacing:8px;color:#3b3b4f}
 .pic{width:200px;height:200px;margin:18px;border-radius:44px;background:#fff;font-size:130px;line-height:200px;text-align:center;box-shadow:0 9px 0 rgba(0,0,0,.12)}
 .choices,#countArea,#abcGrid{height:auto}
-#home .tiles{bottom:50px}
+#home .tiles{bottom:20px;height:auto}
 .tip{font-size:12px;bottom:8px}
 .sum{font-size:64px;text-align:center;line-height:1.2;padding:0 20px}
 .tile .a{position:absolute;top:10px;right:14px;background:#fff;border-radius:14px;font-size:17px;font-weight:700;padding:3px 10px;opacity:.85}
@@ -183,6 +183,7 @@ canvas{-webkit-transition:opacity .6s;transition:opacity .6s}
   var AC = window.AudioContext || window.webkitAudioContext;
   var actx = null;
   function unlock() {
+    unlockVoice();
     try {
       if (!actx && AC) { actx = new AC(); }
       if (actx) {
@@ -253,28 +254,19 @@ canvas{-webkit-transition:opacity .6s;transition:opacity .6s}
       window.speechSynthesis.speak(u);
     } catch (e) { if (done) { done(); } }
   }
-  var clips = {}, clipCount = 0, missing = {}, gen = 0, curSrc = null;
-  function loadClip(text, cb) {
-    var id = hid(text);
-    if (clips[id]) { cb(clips[id]); return; }
-    if (missing[id] || !actx) { cb(null); return; }
-    var x = new XMLHttpRequest();
-    x.open('GET', 'lyd/' + id + '.mp3', true);
-    x.responseType = 'arraybuffer';
-    x.onload = function () {
-      if ((x.status !== 200 && x.status !== 0) || !x.response || x.response.byteLength < 500) { missing[id] = 1; cb(null); return; }
-      try {
-        actx.decodeAudioData(x.response, function (buf) {
-          if (clipCount > 60) { clips = {}; clipCount = 0; }
-          clips[id] = buf; clipCount++; cb(buf);
-        }, function () { missing[id] = 1; cb(null); });
-      } catch (e) { missing[id] = 1; cb(null); }
-    };
-    x.onerror = function () { missing[id] = 1; cb(null); };
-    x.send();
+  // Voice clips play through one reusable <audio> element: on iOS it is unlocked by the first tap,
+  // and (unlike Web Audio) it is not silenced by the iPad's mute switch.
+  var SILENT = 'data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjYwLjE2LjEwMAAAAAAAAAAAAAAA//NwwAAAAAAAAAAAAEluZm8AAAAPAAAAFgAACbEAHR0dHSgoKCgoMzMzMz09PT09SEhISFNTU1NTXl5eXmlpaWlpc3Nzc35+fn5+iYmJiZSUlJSUnp6enp6pqamptLS0tLS/v7+/ysrKysrU1NTU39/f39/q6urq9fX19fX/////AAAAAExhdmM2MC4zMQAAAAAAAAAAAAAAACQELwAAAAAAAAmxyOFTSgAAAAAAAAAAAAAAAAD/80DEAAAAA0gAAAAATEFNRTMuMTAwVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQsRbAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQMSkAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVTEFNRTMuMTAwVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV//NCxKMAAANIAAAAAFVVVVVVVVVVVVVVVVVVVVVVVVVVTEFNRTMuMTAwVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV//NAxKQAAANIAAAAAFVVVVVVVVVVVVVVVVVVVVVVVVVMQU1FMy4xMDBVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVX/80LEowAAA0gAAAAAVVVVVVVVVVVVVVVVVVVVVVVVVVVMQU1FMy4xMDBVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVX/80DEpAAAA0gAAAAAVVVVVVVVVVVVVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQsSjAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQMSkAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVTEFNRTMuMTAwVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV//NCxKMAAANIAAAAAFVVVVVVVVVVVVVVVVVVVVVVVVVVTEFNRTMuMTAwVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV//NAxKQAAANIAAAAAFVVVVVVVVVVVVVVVVVVVVVVVVVMQU1FMy4xMDBVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVX/80LEowAAA0gAAAAAVVVVVVVVVVVVVVVVVVVVVVVVVVVMQU1FMy4xMDBVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVX/80DEpAAAA0gAAAAAVVVVVVVVVVVVVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQsSjAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQMSkAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVTEFNRTMuMTAwVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV//NCxKMAAANIAAAAAFVVVVVVVVVVVVVVVVVVVVVVVVVVTEFNRTMuMTAwVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV//NAxKQAAANIAAAAAFVVVVVVVVVVVVVVVVVVVVVVVVVMQU1FMy4xMDBVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVX/80LEowAAA0gAAAAAVVVVVVVVVVVVVVVVVVVVVVVVVVVMQU1FMy4xMDBVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVX/80DEpAAAA0gAAAAAVVVVVVVVVVVVVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQsSjAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQMSkAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV//NCxKMAAANIAAAAAFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV';
+  var vEl = null, vReady = false, missing = {}, gen = 0, vTimer = null;
+  function voiceEl() { if (!vEl) { vEl = document.createElement('audio'); vEl.preload = 'auto'; document.body.appendChild(vEl); } return vEl; }
+  function unlockVoice() {
+    if (vReady) { return; }
+    vReady = true;
+    try { var a = voiceEl(); a.src = SILENT; var pr = a.play(); if (pr && pr['catch']) { pr['catch'](function () {}); } } catch (e) {}
   }
   function stopVoice() {
-    if (curSrc) { try { if (curSrc.stop) { curSrc.stop(0); } else { curSrc.noteOff(0); } } catch (e) {} curSrc = null; }
+    clearTimeout(vTimer);
+    if (vEl) { try { vEl.onended = null; vEl.onerror = null; vEl.pause(); } catch (e) {} }
     try { if (window.speechSynthesis && window.speechSynthesis.speaking) { window.speechSynthesis.cancel(); } } catch (e) {}
   }
   // say('tekst') or say(['del 1', 'del 2']) - parts are played one after another
@@ -283,20 +275,20 @@ canvas{-webkit-transition:opacity .6s;transition:opacity .6s}
     var my = ++gen, i = 0;
     stopVoice();
     function next() {
+      clearTimeout(vTimer);
       if (my !== gen || i >= parts.length) { return; }
-      var t = parts[i++];
-      loadClip(t, function (buf) {
-        if (my !== gen) { return; }
-        if (buf) {
-          var s = actx.createBufferSource();
-          s.buffer = buf; s.connect(actx.destination);
-          curSrc = s;
-          if (s.start) { s.start(0); } else { s.noteOn(0); }
-          setTimeout(function () { if (curSrc === s) { curSrc = null; } next(); }, buf.duration * 1000 + 60);
-        } else {
-          tts(t, next);
-        }
-      });
+      var t = parts[i++], id = hid(t);
+      if (missing[id] || !vReady) { tts(t, next); return; }
+      var a = voiceEl(), done = false;
+      function fin() { if (done || my !== gen) { return; } done = true; next(); }
+      a.onended = fin;
+      a.onerror = function () { if (done || my !== gen) { return; } done = true; missing[id] = 1; tts(t, next); };
+      vTimer = setTimeout(fin, 7000);
+      try {
+        a.src = 'lyd/' + id + '.mp3';
+        var pr = a.play();
+        if (pr && pr['catch']) { pr['catch'](function () {}); }
+      } catch (e) { a.onerror(); }
     }
     next();
   }
@@ -482,6 +474,24 @@ canvas{-webkit-transition:opacity .6s;transition:opacity .6s}
   ];
   var GOOD = ['Riktig!', 'Bra jobba!', 'Supert!', 'Kjempeflink!', 'Hurra!'];
 
+  // make n tiles as big as possible inside box (w x h)
+  function fitTiles(tiles, w, h, maxSize) {
+    var n = tiles.length, best = 100, bestCols = 1;
+    for (var cols = 1; cols <= n; cols++) {
+      var rows = Math.ceil(n / cols);
+      var size = Math.floor(Math.min(w / cols, h / rows)) - 18;
+      if (size > best) { best = size; bestCols = cols; }
+    }
+    best = Math.min(best, maxSize);
+    for (var i = 0; i < n; i++) {
+      var t = tiles[i];
+      t.style.width = best + 'px'; t.style.height = Math.round(best * 0.93) + 'px'; t.style.margin = '8px';
+      t.style.borderRadius = Math.round(best * 0.18) + 'px';
+      var e = t.querySelector('.e'), tt = t.querySelector('.t');
+      if (e) { e.style.fontSize = Math.round(best * 0.46) + 'px'; e.style.lineHeight = Math.round(best * 0.62) + 'px'; e.style.paddingTop = Math.round(best * 0.04) + 'px'; }
+      if (tt) { tt.style.fontSize = Math.max(16, Math.round(best * 0.12)) + 'px'; }
+    }
+  }
   /* ---------- home: age groups ---------- */
   var INFO = {
     biler: ['🚒', 'Biler', '#ffd6a8'], dyr: ['🐶', 'Dyrelyder', '#ffc4b8'], ballong: ['🎈', 'Ballonger', '#bfe3ff'],
@@ -514,6 +524,9 @@ canvas{-webkit-transition:opacity .6s;transition:opacity .6s}
         tiles.appendChild(t);
       })(GROUPS[i]);
     }
+    function fitHome() { fitTiles(tiles.childNodes, tiles.clientWidth - 20, tiles.clientHeight - 20, 340); }
+    fitHome();
+    window.addEventListener('resize', function () { fitHome(); if (current === 'grp' && starters.grp) { starters.grp(); } }, false);
   })();
   (function () {
     var body = makeScreen('grp', '');
@@ -533,6 +546,7 @@ canvas{-webkit-transition:opacity .6s;transition:opacity .6s}
           grid.appendChild(t);
         })(g.games[i]);
       }
+      fitTiles(grid.childNodes, body.clientWidth - 20, body.clientHeight - 20, 260);
     };
   })();
 
