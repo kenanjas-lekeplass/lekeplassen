@@ -31,6 +31,7 @@ html,body{height:100%;overflow:hidden;background:#fff7e6;font-family:"Avenir Nex
 #home .tile.group .e{font-size:140px;line-height:190px;padding-top:14px}
 #home .tile.group .t{font-size:40px}
 .tile .a{white-space:nowrap}
+.emo{display:inline-block;width:1em;height:1em;vertical-align:-0.12em;background-image:url(emoji.png);background-repeat:no-repeat;-webkit-background-size:11em 11em;background-size:11em 11em}
 .shadow{-webkit-filter:brightness(0);filter:brightness(0);opacity:.22}
 .shadowS{-webkit-filter:brightness(0);filter:brightness(0);opacity:.85;display:inline-block}
 .xbar{width:78px;margin:0 6px;border-radius:22px;position:relative;box-shadow:0 7px 0 rgba(0,0,0,.15)}
@@ -179,6 +180,58 @@ canvas{-webkit-transition:opacity .6s;transition:opacity .6s}
   }
   var PALETTE = ['#ff6b6b', '#ff9a2e', '#f7c531', '#3cc76b', '#3d8bff', '#a45cff', '#ff7fc8', '#20b8b0'];
 
+var EMO_COLS = 11, EMO_ROWS = 11, EMO_LIST = ['\u23f0', '\u2601\ufe0f', '\u2614', '\u26a1', '\u26bd', '\u26c4', '\u2708\ufe0f', '\u270f\ufe0f', '\u2716\ufe0f', '\u2728', '\u2753', '\u2764\ufe0f', '\u2795', '\u27a1\ufe0f', '\u2b05\ufe0f', '\u2b06\ufe0f', '\u2b07\ufe0f', '\u2b1c', '\u2b50', '\ud83c\udccf', '\ud83c\udf08', '\ud83c\udf11', '\ud83c\udf19', '\ud83c\udf1e', '\ud83c\udf1f', '\ud83c\udf33', '\ud83c\udf38', '\ud83c\udf3e', '\ud83c\udf40', '\ud83c\udf47', '\ud83c\udf49', '\ud83c\udf4a', '\ud83c\udf4c', '\ud83c\udf4e', '\ud83c\udf50', '\ud83c\udf52', '\ud83c\udf53', '\ud83c\udf56', '\ud83c\udf66', '\ud83c\udf6f', '\ud83c\udf86', '\ud83c\udf88', '\ud83c\udf89', '\ud83c\udf8b', '\ud83c\udf92', '\ud83c\udfa8', '\ud83c\udfa9', '\ud83c\udfb5', '\ud83c\udfb6', '\ud83c\udfbb', '\ud83c\udfc1', '\ud83c\udfe0', '\ud83c\udfeb', '\ud83d\udc02', '\ud83d\udc0d', '\ud83d\udc11', '\ud83d\udc12', '\ud83d\udc13', '\ud83d\udc18', '\ud83d\udc1b', '\ud83d\udc1e', '\ud83d\udc1f', '\ud83d\udc22', '\ud83d\udc23', '\ud83d\udc25', '\ud83d\udc27', '\ud83d\udc2d', '\ud83d\udc2e', '\ud83d\udc30', '\ud83d\udc31', '\ud83d\udc34', '\ud83d\udc36', '\ud83d\udc37', '\ud83d\udc38', '\ud83d\udc39', '\ud83d\udc3a', '\ud83d\udc3b', '\ud83d\udc3c', '\ud83d\udc42', '\ud83d\udc43', '\ud83d\udc46', '\ud83d\udc47', '\ud83d\udc52', '\ud83d\udc53', '\ud83d\udc55', '\ud83d\udc56', '\ud83d\udc57', '\ud83d\udc5f', '\ud83d\udc62', '\ud83d\udc64', '\ud83d\udc7e', '\ud83d\udc9b', '\ud83d\udca5', '\ud83d\udca7', '\ud83d\udcd6', '\ud83d\udcda', '\ud83d\udd00', '\ud83d\udd01', '\ud83d\udd0a', '\ud83d\udd0d', '\ud83d\udd22', '\ud83d\udd24', '\ud83d\udd34', '\ud83d\udd37', '\ud83d\udd3a', '\ud83d\uddbc\ufe0f', '\ud83d\uddd1', '\ud83d\ude80', '\ud83d\ude81', '\ud83d\ude82', '\ud83d\ude8c', '\ud83d\ude91', '\ud83d\ude92', '\ud83d\ude93', '\ud83d\ude97', '\ud83d\ude9a', '\ud83d\ude9c', '\ud83d\udea2', '\ud83d\udeaa', '\ud83d\udeb2', '\ud83e\udd14'];
+  var EMO_IDX = {};
+  (function () {
+    var keys = [];
+    for (var i = 0; i < EMO_LIST.length; i++) { var k = EMO_LIST[i].replace(/️/g, ''); EMO_IDX[k] = i; keys.push(k); }
+    keys.sort(function (a, b) { return b.length - a.length; });
+    window.__EMO_RE = new RegExp('(' + keys.join('|') + ')️?', 'g');
+  })();
+  var EMO_RE = window.__EMO_RE;
+  // Emoji images (Twemoji, CC-BY 4.0) from one sheet, so they look the same and big on old iOS
+  var SHEET = new Image(), sheetReady = false, sheetWait = [];
+  SHEET.onload = function () { sheetReady = true; var w = sheetWait; sheetWait = []; for (var i = 0; i < w.length; i++) { w[i](); } };
+  SHEET.src = 'emoji.png';
+  function emoIndex(e) { var i = EMO_IDX[e.replace(/️/g, '')]; return i === undefined ? -1 : i; }
+  function drawEmoji(g, e, x, y, size) {
+    var i = emoIndex(e);
+    if (sheetReady && i >= 0) {
+      g.drawImage(SHEET, (i % EMO_COLS) * 128, Math.floor(i / EMO_COLS) * 128, 128, 128, x - size / 2, y - size / 2, size, size);
+      return;
+    }
+    g.font = Math.round(size * 0.85) + 'px sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.fillText(e, x, y + size * 0.05);
+  }
+  function replaceText(t) {
+    var s = t.nodeValue;
+    if (!s || !t.parentNode) { return; }
+    EMO_RE.lastIndex = 0;
+    if (!EMO_RE.test(s)) { return; }
+    EMO_RE.lastIndex = 0;
+    var frag = document.createDocumentFragment(), last = 0, m;
+    while ((m = EMO_RE.exec(s))) {
+      if (m.index > last) { frag.appendChild(document.createTextNode(s.slice(last, m.index))); }
+      var i = EMO_IDX[m[1]], sp = document.createElement('span');
+      sp.className = 'emo';
+      sp.style.backgroundPosition = '-' + (i % EMO_COLS) + 'em -' + Math.floor(i / EMO_COLS) + 'em';
+      frag.appendChild(sp);
+      last = m.index + m[0].length;
+    }
+    if (last < s.length) { frag.appendChild(document.createTextNode(s.slice(last))); }
+    t.parentNode.replaceChild(frag, t);
+  }
+  function emojify(n) {
+    if (!n) { return; }
+    if (n.nodeType === 3) { replaceText(n); return; }
+    if (n.nodeType !== 1) { return; }
+    var tag = n.tagName;
+    if (tag === 'SCRIPT' || tag === 'STYLE' || tag === 'CANVAS' || tag === 'AUDIO') { return; }
+    var kids = [];
+    for (var i = 0; i < n.childNodes.length; i++) { kids.push(n.childNodes[i]); }
+    for (var j = 0; j < kids.length; j++) { emojify(kids[j]); }
+  }
+
   /* ---------- sound ---------- */
   var AC = window.AudioContext || window.webkitAudioContext;
   var actx = null;
@@ -282,7 +335,15 @@ canvas{-webkit-transition:opacity .6s;transition:opacity .6s}
       var a = voiceEl(), done = false;
       function fin() { if (done || my !== gen) { return; } done = true; next(); }
       a.onended = fin;
-      a.onerror = function () { if (done || my !== gen) { return; } done = true; missing[id] = 1; tts(t, next); };
+      a.onerror = function () {
+        if (done || my !== gen) { return; }
+        var err = a.error;
+        // ignore errors that belong to an earlier clip we just interrupted
+        if ((a.src || '').indexOf(id) === -1 || (err && err.code === 1)) { return; }
+        done = true;
+        if (err && err.code === 4) { missing[id] = 1; }
+        tts(t, next);
+      };
       vTimer = setTimeout(fin, 7000);
       try {
         a.src = 'lyd/' + id + '.mp3';
@@ -345,10 +406,14 @@ canvas{-webkit-transition:opacity .6s;transition:opacity .6s}
   function sprite(emoji, size) {
     var s = Math.ceil(size * 1.3), c = document.createElement('canvas');
     c.width = c.height = Math.ceil(s * DPR);
-    var g = c.getContext('2d');
-    g.scale(DPR, DPR);
-    g.font = size + 'px sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
-    g.fillText(emoji, s / 2, s / 2 + size * 0.06);
+    function paint() {
+      var g = c.getContext('2d');
+      g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, c.width, c.height);
+      g.setTransform(DPR, 0, 0, DPR, 0, 0);
+      drawEmoji(g, emoji, s / 2, s / 2, size * 1.15);
+    }
+    paint();
+    if (!sheetReady) { sheetWait.push(paint); }
     return { c: c, s: s };
   }
   function drawSprite(g, sp, x, y) { g.drawImage(sp.c, x - sp.s / 2, y - sp.s / 2, sp.s, sp.s); }
@@ -405,13 +470,10 @@ canvas{-webkit-transition:opacity .6s;transition:opacity .6s}
     g.fillStyle = gr; g.fillRect(0, 0, S, S);
     g.fillStyle = 'rgba(255,255,255,.9)';
     g.beginPath(); g.arc(S / 2, S / 2, S * 0.36, 0, 6.3); g.fill();
-    g.textAlign = 'center'; g.textBaseline = 'middle';
-    g.font = Math.round(S * 0.11) + 'px sans-serif';
-    g.fillText('⭐', S * 0.12, S * 0.12); g.fillText('🌸', S * 0.88, S * 0.88);
-    g.fillText('✨', S * 0.88, S * 0.5); g.fillText('🍀', S * 0.12, S * 0.5);
-    g.font = Math.round(S * 0.58) + 'px sans-serif';
-    g.fillText(p[0], S / 2, S / 2 + S * 0.04);
-    return c.toDataURL('image/png');
+    drawEmoji(g, '⭐', S * 0.12, S * 0.12, S * 0.13); drawEmoji(g, '🌸', S * 0.88, S * 0.88, S * 0.13);
+    drawEmoji(g, '✨', S * 0.88, S * 0.5, S * 0.13); drawEmoji(g, '🍀', S * 0.12, S * 0.5, S * 0.13);
+    drawEmoji(g, p[0], S / 2, S / 2, S * 0.6);
+    try { return c.toDataURL('image/png'); } catch (e) { return ''; }
   }
 
   /* ---------- screens ---------- */
@@ -852,7 +914,7 @@ canvas{-webkit-transition:opacity .6s;transition:opacity .6s}
     var again = el('div', 'again', 'Spill igjen');
     body.appendChild(grid); body.appendChild(again);
     var first = null, lock = false, found = 0;
-    var w = (88 / cols).toFixed(1) + '%', h = (88 / Math.ceil(pairs * 2 / cols)).toFixed(1) + '%';
+    var w = (100 / cols - 2.2).toFixed(2) + '%', h = (100 / Math.ceil(pairs * 2 / cols) - 2.4).toFixed(2) + '%';
     onTap(again, function () { sfx.tap(); start(); });
     function start() {
       again.style.display = 'none';
@@ -864,7 +926,7 @@ canvas{-webkit-transition:opacity .6s;transition:opacity .6s}
       for (var i = 0; i < deck.length; i++) {
         (function (a) {
           var c = el('div', 'card', '⭐');
-          c.style.width = w; c.style.height = h;
+          c.style.width = w; c.style.height = h; c.style.margin = '1%';
           if (cols > 4) { c.style.fontSize = '64px'; }
           c.setAttribute('data-k', a[0]);
           onTap(c, function () {
@@ -1204,23 +1266,7 @@ canvas{-webkit-transition:opacity .6s;transition:opacity .6s}
     var next = el('div', 'again', 'Neste ➜'); next.style.zIndex = '999';
     body.appendChild(next);
     var pieces = [], placed = 0, idx = rnd(1000), active = null, offx = 0, offy = 0, zc = 10, done = 0, cur = null;
-    function render(p) {
-      var c = document.createElement('canvas'), S = 600;
-      c.width = c.height = S;
-      var g = c.getContext('2d');
-      var gr = g.createLinearGradient(0, 0, S, S);
-      gr.addColorStop(0, p[2]); gr.addColorStop(1, p[3]);
-      g.fillStyle = gr; g.fillRect(0, 0, S, S);
-      g.fillStyle = 'rgba(255,255,255,.9)';
-      g.beginPath(); g.arc(S / 2, S / 2, S * 0.36, 0, 6.3); g.fill();
-      g.textAlign = 'center'; g.textBaseline = 'middle';
-      g.font = Math.round(S * 0.11) + 'px sans-serif';
-      g.fillText('⭐', S * 0.12, S * 0.12); g.fillText('🌸', S * 0.88, S * 0.88);
-      g.fillText('✨', S * 0.88, S * 0.5); g.fillText('🍀', S * 0.12, S * 0.5);
-      g.font = Math.round(S * 0.58) + 'px sans-serif';
-      g.fillText(p[0], S / 2, S / 2 + S * 0.04);
-      return c.toDataURL('image/png');
-    }
+    function render(p) { return renderPic(p); }
     function setXY(pc) { pc.el.style.left = pc.x + 'px'; pc.el.style.top = pc.y + 'px'; }
     function start(first) {
       area.innerHTML = ''; next.style.display = 'none'; pieces = []; placed = 0; active = null;
@@ -1540,8 +1586,7 @@ canvas{-webkit-transition:opacity .6s;transition:opacity .6s}
       var gr = g.createLinearGradient(0, 0, C.w, C.h);
       gr.addColorStop(0, '#c9d2e3'); gr.addColorStop(0.5, '#e8ecf4'); gr.addColorStop(1, '#b7c1d6');
       g.fillStyle = gr; g.fillRect(0, 0, C.w, C.h);
-      g.font = '40px sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
-      for (var i = 0; i < 26; i++) { g.globalAlpha = 0.35; g.fillText(['⭐', '❓', '✨'][i % 3], Math.random() * C.w, Math.random() * C.h); }
+      for (var i = 0; i < 26; i++) { g.globalAlpha = 0.35; drawEmoji(g, ['⭐', '❓', '✨'][i % 3], Math.random() * C.w, Math.random() * C.h, 46); }
       g.globalAlpha = 1;
       gw = Math.ceil(C.w / CELL); gh = Math.ceil(C.h / CELL); grid = []; cleared = 0; total = gw * gh;
       for (var k = 0; k < total; k++) { grid.push(0); }
@@ -1584,7 +1629,7 @@ canvas{-webkit-transition:opacity .6s;transition:opacity .6s}
   /* ---------- Fang frukten ---------- */
   (function () {
     var body = makeScreen('fang', 'Fang frukten');
-    var area = fill(el('div')); area.className = 'sky';
+    var area = fill(el('div')); area.className = 'sky'; area.style.overflow = 'hidden';
     var bear = el('div', 'catcher', '🐻');
     area.appendChild(bear); body.appendChild(area);
     var stop = null, fruits = [], score = 0, bx = 300, tx = 300, spawnT = 0, W = 0, H = 0;
@@ -2393,11 +2438,23 @@ canvas{-webkit-transition:opacity .6s;transition:opacity .6s}
     var gr = g.createLinearGradient(0, 0, 180, 180);
     gr.addColorStop(0, '#ffd23d'); gr.addColorStop(1, '#ff6b6b');
     g.fillStyle = gr; g.fillRect(0, 0, 180, 180);
-    g.font = '110px sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
-    g.fillText('🌈', 90, 98);
+    drawEmoji(g, '🌈', 90, 92, 130);
     $('icon').href = ic.toDataURL('image/png');
   } catch (e) {}
+  /* ---------- turn emoji text into sheet images, now and whenever the page changes ---------- */
+  emojify(document.body);
+  var MO = window.MutationObserver || window.WebKitMutationObserver;
+  if (MO) {
+    new MO(function (muts) {
+      for (var i = 0; i < muts.length; i++) {
+        var m = muts[i];
+        if (m.type === 'characterData') { replaceText(m.target); continue; }
+        for (var j = 0; j < m.addedNodes.length; j++) { emojify(m.addedNodes[j]); }
+      }
+    }).observe(document.body, { childList: true, subtree: true, characterData: true });
+  }
 })();
 </script>
+<!-- Emoji-grafikk: Twemoji (c) Twitter/X og bidragsytere, CC-BY 4.0, https://github.com/jdecked/twemoji -->
 </body>
 </html>
