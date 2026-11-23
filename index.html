@@ -1,0 +1,2389 @@
+<!DOCTYPE html>
+<html lang="nb">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Lekeplassen">
+<title>Lekeplassen</title>
+<link rel="apple-touch-icon" id="icon" href="">
+<style>
+*{margin:0;padding:0;-webkit-box-sizing:border-box;box-sizing:border-box;-webkit-tap-highlight-color:rgba(0,0,0,0);-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+html,body{height:100%;overflow:hidden;background:#fff7e6;font-family:"Avenir Next","Helvetica Neue",Helvetica,Arial,sans-serif;color:#3b3b4f}
+.flex{display:-webkit-box;display:-webkit-flex;display:flex}
+.screen{position:absolute;top:0;left:0;right:0;bottom:0;display:none}
+.screen.on{display:block}
+.top{position:absolute;top:0;left:0;right:0;height:96px;padding:12px 20px 0 20px;display:-webkit-box;display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center}
+.back{width:76px;height:76px;border-radius:38px;background:#fff;font-size:42px;line-height:76px;text-align:center;box-shadow:0 5px 0 rgba(0,0,0,.12)}
+.title{font-size:36px;font-weight:700;margin-left:20px}
+.right{margin-left:auto;font-size:38px;font-weight:700}
+.body{position:absolute;top:96px;left:0;right:0;bottom:0}
+.wrap{display:-webkit-box;display:-webkit-flex;display:flex;-webkit-flex-wrap:wrap;flex-wrap:wrap;-webkit-justify-content:center;justify-content:center;-webkit-align-content:center;align-content:center;-webkit-align-items:center;align-items:center;height:100%;padding:10px}
+
+/* Home */
+#home .hero{text-align:center;font-size:54px;font-weight:800;padding-top:26px;height:110px;color:#ff6b6b;text-shadow:0 4px 0 rgba(0,0,0,.08)}
+#home .tiles{position:absolute;top:110px;left:0;right:0;bottom:60px}
+.tile{width:176px;height:164px;margin:9px;border-radius:30px;text-align:center;box-shadow:0 7px 0 rgba(0,0,0,.13);position:relative}
+.tile .e{font-size:72px;line-height:100px;padding-top:8px}
+.tile .t{font-size:22px;font-weight:700}
+#home .tile.group{width:280px;height:280px;margin:18px;border-radius:44px}
+#home .tile.group .e{font-size:140px;line-height:190px;padding-top:14px}
+#home .tile.group .t{font-size:40px}
+.tile .a{white-space:nowrap}
+.shadow{-webkit-filter:brightness(0);filter:brightness(0);opacity:.22}
+.shadowS{-webkit-filter:brightness(0);filter:brightness(0);opacity:.85;display:inline-block}
+.xbar{width:78px;margin:0 6px;border-radius:22px;position:relative;box-shadow:0 7px 0 rgba(0,0,0,.15)}
+.xbar .pin{position:absolute;left:31px;width:16px;height:16px;border-radius:8px;background:rgba(255,255,255,.7)}
+.tcell{width:200px;height:200px;margin:14px;border-radius:40px;background:#e9f8d8;position:relative;box-shadow:0 7px 0 rgba(0,0,0,.1);overflow:hidden}
+.tcell .tan,.tcell .tbush{position:absolute;left:0;right:0;top:0;bottom:0;text-align:center;line-height:200px}
+.tcell .tan{font-size:120px;opacity:0;-webkit-transform:translateY(60px);transform:translateY(60px);-webkit-transition:all .35s;transition:all .35s}
+.tcell .tbush{font-size:170px;-webkit-transition:all .35s;transition:all .35s}
+.tcell.open .tan{opacity:1;-webkit-transform:translateY(0);transform:translateY(0)}
+.tcell.open .tbush{opacity:.18;-webkit-transform:translateY(70px) scale(.8);transform:translateY(70px) scale(.8)}
+.mtarget{position:absolute;border-radius:36px;background:rgba(255,255,255,.7);border:5px dashed #d8cdb8;text-align:center}
+.mtarget.fed{background:#d9f7e3;border-color:#3cc76b}
+.mitem{position:absolute;border-radius:36px;background:#fff;text-align:center;box-shadow:0 7px 0 rgba(0,0,0,.13)}
+.mitem.lift{box-shadow:0 18px 20px rgba(0,0,0,.25)}
+.scratchpic{text-align:center}
+.scratchpic .bigemoji{font-size:300px;position:absolute;left:0;right:0;top:50%;margin-top:-190px;line-height:380px}
+canvas{-webkit-transition:opacity .6s;transition:opacity .6s}
+.sky{background:-webkit-linear-gradient(top,#9fd8ff,#e9f7ff 75%,#9be07a 75%);background:linear-gradient(#9fd8ff,#e9f7ff 75%,#9be07a 75%)}
+.catcher{position:absolute;left:0;top:0;width:120px;height:120px;font-size:110px;line-height:120px;text-align:center}
+.faller{position:absolute;left:0;top:0;width:80px;height:80px;font-size:70px;line-height:80px;text-align:center}
+.mhole{width:200px;height:170px;margin:12px;position:relative;overflow:hidden;border-radius:30px}
+.mhole .mound{position:absolute;left:15px;right:15px;bottom:10px;height:56px;border-radius:50%;background:#7a4b2a;box-shadow:inset 0 10px 0 rgba(0,0,0,.35)}
+.mhole .critter{position:absolute;left:0;right:0;bottom:22px;text-align:center;font-size:100px;line-height:120px;-webkit-transform:translateY(130px);transform:translateY(130px);-webkit-transition:-webkit-transform .18s;transition:transform .18s}
+.mhole.up .critter{-webkit-transform:translateY(0);transform:translateY(0)}
+.mslot{width:92px;height:92px;margin:6px;border-radius:24px;background:#fff;font-size:62px;line-height:92px;text-align:center;box-shadow:0 5px 0 rgba(0,0,0,.1)}
+.mslot.q{background:#fff3c4;border:4px dashed #f7c531;color:#c99a00;font-weight:800}
+.mslot.ok{background:#d9f7e3}
+.dpad{position:absolute;right:16px;bottom:16px;width:216px;height:216px}
+.dpad div{position:absolute;width:72px;height:72px;border-radius:20px;background:rgba(255,255,255,.85);font-size:44px;line-height:72px;text-align:center;box-shadow:0 5px 0 rgba(0,0,0,.15)}
+.dpad div[data-d=u]{left:72px;top:0}.dpad div[data-d=d]{left:72px;top:144px}.dpad div[data-d=l]{left:0;top:72px}.dpad div[data-d=r]{left:144px;top:72px}
+.stile{position:absolute;border-radius:8px;-webkit-transition:left .15s,top .15s;transition:left .15s,top .15s;box-shadow:inset 0 0 0 2px rgba(255,255,255,.5)}
+.scell{position:absolute;background:#fff;border-radius:12px;text-align:center}
+.scell.given{background:#f1ecff}
+.scell.sel{background:#fff3c4;box-shadow:inset 0 0 0 5px #f7c531}
+.scell.ok{background:#d9f7e3}
+.spal{position:absolute;text-align:center}
+.clockch{position:absolute;display:-webkit-box;display:-webkit-flex;display:flex;-webkit-flex-direction:column;flex-direction:column;-webkit-justify-content:center;justify-content:center;-webkit-align-items:center;align-items:center}
+.clockbtn{width:320px;margin:12px;padding:16px 10px;border-radius:30px;color:#fff;font-size:36px;font-weight:800;text-align:center;box-shadow:0 7px 0 rgba(0,0,0,.15)}
+.clockbtn small{display:block;font-size:24px;opacity:.85;font-weight:700}
+#road{position:absolute;top:0;left:0;right:0;bottom:0;overflow:hidden;background:#8fd16a}
+#road .lane{position:absolute;left:0;right:0;top:50%;height:190px;margin-top:-95px;background:#5b5b66}
+#road .lane:after{content:'';position:absolute;left:0;right:0;top:91px;height:8px;background:-webkit-repeating-linear-gradient(left,#fff 0,#fff 50px,transparent 50px,transparent 100px);background:repeating-linear-gradient(90deg,#fff 0,#fff 50px,transparent 50px,transparent 100px)}
+#car{position:absolute;left:0;top:0;font-size:110px;line-height:1;margin:-55px 0 0 -55px}
+.star{position:absolute;font-size:64px;margin:-32px 0 0 -32px}
+.word{font-size:110px;font-weight:800;letter-spacing:8px;color:#3b3b4f}
+.pic{width:200px;height:200px;margin:18px;border-radius:44px;background:#fff;font-size:130px;line-height:200px;text-align:center;box-shadow:0 9px 0 rgba(0,0,0,.12)}
+.choices,#countArea,#abcGrid{height:auto}
+#home .tiles{bottom:50px}
+.tip{font-size:12px;bottom:8px}
+.sum{font-size:64px;text-align:center;line-height:1.2;padding:0 20px}
+.tile .a{position:absolute;top:10px;right:14px;background:#fff;border-radius:14px;font-size:17px;font-weight:700;padding:3px 10px;opacity:.85}
+.tip{position:absolute;left:0;right:0;bottom:12px;text-align:center;font-size:14px;color:#a79c88;padding:0 20px}
+
+/* generic big button */
+.big{width:150px;height:150px;margin:12px;border-radius:36px;background:#fff;font-size:96px;line-height:150px;text-align:center;box-shadow:0 7px 0 rgba(0,0,0,.12)}
+
+/* Balloons */
+#bArea{position:absolute;top:0;left:0;right:0;bottom:0;overflow:hidden;background:-webkit-linear-gradient(top,#bfe6ff,#eaf7ff);background:linear-gradient(#bfe6ff,#eaf7ff)}
+.balloon{position:absolute;left:0;top:0;width:112px;height:138px;border-radius:50% 50% 48% 48% / 56% 56% 44% 44%;box-shadow:inset -12px -16px 0 rgba(0,0,0,.13)}
+.balloon:before{content:'';position:absolute;left:24px;top:22px;width:20px;height:32px;border-radius:50%;background:rgba(255,255,255,.55)}
+.balloon:after{content:'';position:absolute;left:55px;top:138px;width:2px;height:70px;background:rgba(0,0,0,.25)}
+.burst{position:absolute;font-size:80px;pointer-events:none;-webkit-animation:burst .6s forwards;animation:burst .6s forwards}
+
+/* Drawing */
+#palette{position:absolute;top:0;left:0;bottom:0;width:100px;display:-webkit-box;display:-webkit-flex;display:flex;-webkit-flex-direction:column;flex-direction:column;-webkit-align-items:center;align-items:center;-webkit-justify-content:center;justify-content:center}
+.sw{border-radius:50%;border:5px solid #fff;box-shadow:0 4px 0 rgba(0,0,0,.15);margin:3px 0;text-align:center}
+.sw.sel{border-color:#3b3b4f}
+#canvasBox{position:absolute;top:0;left:100px;right:16px;bottom:16px;background:#fff;border-radius:26px;overflow:hidden;box-shadow:0 6px 0 rgba(0,0,0,.1)}
+#canvas{display:block}
+
+/* ABC */
+#abcShow{height:210px;text-align:center;display:-webkit-box;display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center;-webkit-justify-content:center;justify-content:center}
+#abcShow .L{font-size:150px;font-weight:800;color:#ff6b6b;line-height:1}
+#abcShow .E{font-size:120px;margin:0 30px}
+#abcShow .W{font-size:52px;font-weight:700}
+#abcGrid{position:absolute;top:210px;left:0;right:0;bottom:0;-webkit-align-content:flex-start;align-content:flex-start}
+.letter{width:80px;height:80px;margin:6px;border-radius:22px;font-size:46px;font-weight:800;line-height:80px;text-align:center;color:#fff;box-shadow:0 5px 0 rgba(0,0,0,.15)}
+
+/* Find letter / counting choices */
+.prompt{height:120px;display:-webkit-box;display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center;-webkit-justify-content:center;justify-content:center;font-size:40px;font-weight:700}
+.speaker{width:90px;height:90px;border-radius:45px;background:#fff;font-size:50px;line-height:90px;text-align:center;margin-left:24px;box-shadow:0 5px 0 rgba(0,0,0,.12)}
+.choices{position:absolute;top:120px;left:0;right:0;bottom:0}
+.choice{width:200px;height:200px;margin:18px;border-radius:44px;font-size:140px;font-weight:800;line-height:200px;text-align:center;color:#fff;box-shadow:0 9px 0 rgba(0,0,0,.15)}
+#countArea{position:absolute;top:110px;left:30px;right:30px;bottom:200px;background:#fff;border-radius:30px;box-shadow:0 6px 0 rgba(0,0,0,.08)}
+.obj{font-size:86px;width:120px;height:120px;line-height:120px;text-align:center;margin:6px;position:relative}
+.obj.done{opacity:.45}
+.obj .n{position:absolute;right:4px;top:4px;width:44px;height:44px;border-radius:22px;background:#ff6b6b;color:#fff;font-size:28px;line-height:44px;font-weight:800;opacity:1}
+#countChoices{position:absolute;left:0;right:0;bottom:10px;height:180px;padding:0}
+#countChoices .choice{width:150px;height:150px;font-size:96px;line-height:150px;margin:0 20px;border-radius:36px}
+
+/* Memory */
+#mGrid{padding:14px 30px}
+.card{width:21%;height:29%;margin:1.5%;border-radius:28px;font-size:84px;text-align:center;box-shadow:0 6px 0 rgba(0,0,0,.13);background:#7c6cff;color:#fff;display:-webkit-box;display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center;-webkit-justify-content:center;justify-content:center}
+.card.up{background:#fff}
+.card.ok{background:#d9f7e3}
+.again{position:absolute;left:50%;top:50%;width:320px;margin-left:-160px;margin-top:-60px;height:120px;border-radius:40px;background:#3cc76b;color:#fff;font-size:44px;font-weight:800;line-height:120px;text-align:center;box-shadow:0 8px 0 rgba(0,0,0,.18);display:none}
+
+/* FX */
+#fx{position:fixed;top:0;left:0;right:0;bottom:0;pointer-events:none;overflow:hidden;z-index:50}
+.conf{position:absolute;top:-80px;-webkit-animation-name:fall;animation-name:fall;-webkit-animation-timing-function:linear;animation-timing-function:linear;-webkit-animation-fill-mode:forwards;animation-fill-mode:forwards}
+.bump{-webkit-animation:bump .45s;animation:bump .45s}
+.wobble{-webkit-animation:wobble .5s;animation:wobble .5s}
+@-webkit-keyframes bump{0%{-webkit-transform:scale(1)}40%{-webkit-transform:scale(1.22)}100%{-webkit-transform:scale(1)}}
+@keyframes bump{0%{transform:scale(1)}40%{transform:scale(1.22)}100%{transform:scale(1)}}
+@-webkit-keyframes wobble{0%,100%{-webkit-transform:translateX(0)}20%{-webkit-transform:translateX(-18px)}40%{-webkit-transform:translateX(16px)}60%{-webkit-transform:translateX(-10px)}80%{-webkit-transform:translateX(6px)}}
+@keyframes wobble{0%,100%{transform:translateX(0)}20%{transform:translateX(-18px)}40%{transform:translateX(16px)}60%{transform:translateX(-10px)}80%{transform:translateX(6px)}}
+@-webkit-keyframes fall{0%{-webkit-transform:translateY(0) rotate(0)}100%{-webkit-transform:translateY(1250px) rotate(540deg)}}
+@keyframes fall{0%{transform:translateY(0) rotate(0)}100%{transform:translateY(1250px) rotate(540deg)}}
+@-webkit-keyframes burst{0%{-webkit-transform:scale(.4);opacity:1}100%{-webkit-transform:scale(1.8);opacity:0}}
+@keyframes burst{0%{transform:scale(.4);opacity:1}100%{transform:scale(1.8);opacity:0}}
+</style>
+</head>
+<body>
+<div id="home" class="screen on">
+  <div class="hero">🌈 Lekeplassen</div>
+  <div class="tiles wrap" id="tiles"></div>
+</div>
+<div id="fx"></div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ---------- helpers ---------- */
+  function $(id) { return document.getElementById(id); }
+  function el(tag, cls, html) {
+    var e = document.createElement(tag);
+    if (cls) { e.className = cls; }
+    if (html !== undefined && html !== null) { e.innerHTML = html; }
+    return e;
+  }
+  function rnd(n) { return Math.floor(Math.random() * n); }
+  function shuffle(a) {
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+  function now() { return new Date().getTime(); }
+  function bounce(n, cls) {
+    cls = cls || 'bump';
+    n.classList.remove(cls);
+    void n.offsetWidth;
+    n.classList.add(cls);
+  }
+  var PALETTE = ['#ff6b6b', '#ff9a2e', '#f7c531', '#3cc76b', '#3d8bff', '#a45cff', '#ff7fc8', '#20b8b0'];
+
+  /* ---------- sound ---------- */
+  var AC = window.AudioContext || window.webkitAudioContext;
+  var actx = null;
+  function unlock() {
+    try {
+      if (!actx && AC) { actx = new AC(); }
+      if (actx) {
+        var b = actx.createBuffer(1, 1, 22050);
+        var s = actx.createBufferSource();
+        s.buffer = b; s.connect(actx.destination);
+        if (s.start) { s.start(0); } else { s.noteOn(0); }
+        if (actx.resume) { actx.resume(); }
+      }
+    } catch (e) {}
+  }
+  function tone(freq, dur, type, when, vol, endFreq) {
+    if (!actx) { return; }
+    try {
+      var t = actx.currentTime + (when || 0);
+      var o = actx.createOscillator();
+      var g = actx.createGain ? actx.createGain() : actx.createGainNode();
+      o.type = type || 'sine';
+      o.frequency.setValueAtTime(freq, t);
+      if (endFreq) { o.frequency.exponentialRampToValueAtTime(endFreq, t + dur); }
+      g.gain.setValueAtTime(vol || 0.2, t);
+      g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+      o.connect(g); g.connect(actx.destination);
+      if (o.start) { o.start(t); o.stop(t + dur + 0.05); } else { o.noteOn(t); o.noteOff(t + dur + 0.05); }
+    } catch (e) {}
+  }
+  var sfx = {
+    tap: function () { tone(660, 0.12, 'sine', 0, 0.15); },
+    pop: function () { tone(900, 0.12, 'triangle', 0, 0.25, 200); },
+    good: function () {
+      tone(523, 0.18, 'triangle', 0, 0.2); tone(659, 0.18, 'triangle', 0.12, 0.2);
+      tone(784, 0.18, 'triangle', 0.24, 0.2); tone(1047, 0.35, 'triangle', 0.36, 0.2);
+    },
+    soft: function () { tone(330, 0.2, 'sine', 0, 0.15); tone(262, 0.3, 'sine', 0.15, 0.15); },
+    flip: function () { tone(500, 0.08, 'square', 0, 0.06, 800); }
+  };
+
+  /* ---------- speech: recorded clips (lyd/<id>.mp3), Norwegian TTS as fallback ---------- */
+  function hid(t) {
+    var h = 5381;
+    for (var i = 0; i < t.length; i++) { h = ((h << 5) + h + t.charCodeAt(i)) | 0; }
+    return ('0000000' + (h >>> 0).toString(16)).slice(-8);
+  }
+  var voice = null;
+  function pickVoice() {
+    if (!window.speechSynthesis) { return; }
+    var vs = window.speechSynthesis.getVoices() || [];
+    for (var i = 0; i < vs.length; i++) {
+      if (/^(nb|no|nn)/i.test(vs[i].lang)) { voice = vs[i]; return; }
+    }
+  }
+  if (window.speechSynthesis) {
+    pickVoice();
+    window.speechSynthesis.onvoiceschanged = pickVoice;
+  }
+  function tts(text, done) {
+    if (!window.speechSynthesis || !window.SpeechSynthesisUtterance) { if (done) { done(); } return; }
+    try {
+      if (!voice) { pickVoice(); }
+      var u = new window.SpeechSynthesisUtterance(text);
+      u.lang = 'nb-NO';
+      if (voice) { u.voice = voice; }
+      u.rate = 0.9;
+      var fired = false;
+      var fin = function () { if (!fired) { fired = true; if (done) { done(); } } };
+      u.onend = fin;
+      setTimeout(fin, 600 + text.length * 110);
+      window.speechSynthesis.speak(u);
+    } catch (e) { if (done) { done(); } }
+  }
+  var clips = {}, clipCount = 0, missing = {}, gen = 0, curSrc = null;
+  function loadClip(text, cb) {
+    var id = hid(text);
+    if (clips[id]) { cb(clips[id]); return; }
+    if (missing[id] || !actx) { cb(null); return; }
+    var x = new XMLHttpRequest();
+    x.open('GET', 'lyd/' + id + '.mp3', true);
+    x.responseType = 'arraybuffer';
+    x.onload = function () {
+      if ((x.status !== 200 && x.status !== 0) || !x.response || x.response.byteLength < 500) { missing[id] = 1; cb(null); return; }
+      try {
+        actx.decodeAudioData(x.response, function (buf) {
+          if (clipCount > 60) { clips = {}; clipCount = 0; }
+          clips[id] = buf; clipCount++; cb(buf);
+        }, function () { missing[id] = 1; cb(null); });
+      } catch (e) { missing[id] = 1; cb(null); }
+    };
+    x.onerror = function () { missing[id] = 1; cb(null); };
+    x.send();
+  }
+  function stopVoice() {
+    if (curSrc) { try { if (curSrc.stop) { curSrc.stop(0); } else { curSrc.noteOff(0); } } catch (e) {} curSrc = null; }
+    try { if (window.speechSynthesis && window.speechSynthesis.speaking) { window.speechSynthesis.cancel(); } } catch (e) {}
+  }
+  // say('tekst') or say(['del 1', 'del 2']) - parts are played one after another
+  function say(parts) {
+    if (typeof parts === 'string') { parts = [parts]; }
+    var my = ++gen, i = 0;
+    stopVoice();
+    function next() {
+      if (my !== gen || i >= parts.length) { return; }
+      var t = parts[i++];
+      loadClip(t, function (buf) {
+        if (my !== gen) { return; }
+        if (buf) {
+          var s = actx.createBufferSource();
+          s.buffer = buf; s.connect(actx.destination);
+          curSrc = s;
+          if (s.start) { s.start(0); } else { s.noteOn(0); }
+          setTimeout(function () { if (curSrc === s) { curSrc = null; } next(); }, buf.duration * 1000 + 60);
+        } else {
+          tts(t, next);
+        }
+      });
+    }
+    next();
+  }
+
+  /* ---------- touch ---------- */
+  var lastTouch = 0;
+  function onTap(node, fn) {
+    node.addEventListener('touchend', function (e) {
+      e.preventDefault(); lastTouch = now(); unlock(); fn.call(node, e);
+    }, false);
+    node.addEventListener('click', function (e) {
+      if (now() - lastTouch < 700) { return; }
+      unlock(); fn.call(node, e);
+    }, false);
+  }
+  document.addEventListener('touchmove', function (e) { e.preventDefault(); }, { passive: false });
+  document.addEventListener('touchend', unlock, false);
+
+  /* ---------- party ---------- */
+  function party() {
+    var layer = $('fx');
+    var em = ['⭐', '🎉', '✨', '🎈', '🌟', '💛'];
+    for (var i = 0; i < 30; i++) {
+      var d = el('div', 'conf', em[rnd(em.length)]);
+      d.style.left = rnd(96) + '%';
+      d.style.fontSize = (32 + rnd(34)) + 'px';
+      var dur = (1.8 + Math.random() * 1.4).toFixed(2) + 's';
+      var del = (Math.random() * 0.6).toFixed(2) + 's';
+      d.style.webkitAnimationDuration = dur; d.style.animationDuration = dur;
+      d.style.webkitAnimationDelay = del; d.style.animationDelay = del;
+      layer.appendChild(d);
+    }
+    setTimeout(function () { layer.innerHTML = ''; }, 4000);
+  }
+
+  /* ---------- shared helpers for games ---------- */
+  var RAF = window.requestAnimationFrame || window.webkitRequestAnimationFrame || function (f) { return setTimeout(function () { f(now()); }, 16); };
+  var CAF = window.cancelAnimationFrame || window.webkitCancelAnimationFrame || clearTimeout;
+  function loop(fn) {
+    var on = true, last = 0, id = null;
+    function step(t) {
+      if (!on) { return; }
+      var dt = last ? Math.min(0.05, (t - last) / 1000) : 0.016;
+      last = t; fn(dt);
+      if (on) { id = RAF(step); }
+    }
+    id = RAF(step);
+    return function () { on = false; CAF(id); };
+  }
+  function relTo(area, x, y) { var r = area.getBoundingClientRect(); return { x: x - r.left, y: y - r.top }; }
+  function fill(n) { n.style.position = 'absolute'; n.style.top = '0'; n.style.left = '0'; n.style.right = '0'; n.style.bottom = '0'; return n; }
+  function place(n, x, y) { n.style.left = Math.round(x) + 'px'; n.style.top = Math.round(y) + 'px'; }
+  var DPR = window.devicePixelRatio || 1;
+  function sprite(emoji, size) {
+    var s = Math.ceil(size * 1.3), c = document.createElement('canvas');
+    c.width = c.height = Math.ceil(s * DPR);
+    var g = c.getContext('2d');
+    g.scale(DPR, DPR);
+    g.font = size + 'px sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.fillText(emoji, s / 2, s / 2 + size * 0.06);
+    return { c: c, s: s };
+  }
+  function drawSprite(g, sp, x, y) { g.drawImage(sp.c, x - sp.s / 2, y - sp.s / 2, sp.s, sp.s); }
+  function setupCanvas(cv, box) {
+    var w = box.clientWidth, h = box.clientHeight;
+    cv.width = Math.round(w * DPR); cv.height = Math.round(h * DPR);
+    cv.style.width = w + 'px'; cv.style.height = h + 'px';
+    var g = cv.getContext('2d');
+    g.setTransform(DPR, 0, 0, DPR, 0, 0);
+    return { g: g, w: w, h: h };
+  }
+  function againBtn(body, label, fn) {
+    var b = el('div', 'again', label || 'Spill igjen');
+    b.style.zIndex = '999';
+    body.appendChild(b);
+    onTap(b, function () { sfx.tap(); b.style.display = 'none'; fn(); });
+    return b;
+  }
+  function burstAt(parent, x, y, emoji) {
+    var s = el('div', 'burst', emoji || '✨');
+    s.style.left = (x - 40) + 'px'; s.style.top = (y - 40) + 'px';
+    parent.appendChild(s);
+    setTimeout(function () { if (s.parentNode) { s.parentNode.removeChild(s); } }, 650);
+  }
+  // pointer helpers: calls fn(x, y, phase) with coords relative to area; phase = 'start' | 'move' | 'end'
+  function pointer(area, fn) {
+    var down = false;
+    area.addEventListener('touchstart', function (e) { e.preventDefault(); unlock(); down = true; var t = e.changedTouches[0], p = relTo(area, t.clientX, t.clientY); fn(p.x, p.y, 'start', e); }, false);
+    area.addEventListener('touchmove', function (e) { e.preventDefault(); var t = e.changedTouches[0], p = relTo(area, t.clientX, t.clientY); fn(p.x, p.y, 'move', e); }, false);
+    area.addEventListener('touchend', function (e) { down = false; var t = e.changedTouches[0], p = relTo(area, t.clientX, t.clientY); fn(p.x, p.y, 'end', e); }, false);
+    area.addEventListener('mousedown', function (e) { unlock(); down = true; var p = relTo(area, e.clientX, e.clientY); fn(p.x, p.y, 'start', e); }, false);
+    area.addEventListener('mousemove', function (e) { if (!down) { return; } var p = relTo(area, e.clientX, e.clientY); fn(p.x, p.y, 'move', e); }, false);
+    window.addEventListener('mouseup', function (e) { if (!down) { return; } down = false; var p = relTo(area, e.clientX, e.clientY); fn(p.x, p.y, 'end', e); }, false);
+  }
+  // drag single elements inside an area
+  var DRAG = null;
+  function draggable(node, area, cb) {
+    function start(x, y) { DRAG = { area: area, cb: cb }; var p = relTo(area, x, y); cb.start(p.x, p.y); }
+    node.addEventListener('touchstart', function (e) { e.preventDefault(); e.stopPropagation(); unlock(); var t = e.changedTouches[0]; start(t.clientX, t.clientY); }, false);
+    node.addEventListener('mousedown', function (e) { e.preventDefault(); e.stopPropagation(); unlock(); start(e.clientX, e.clientY); }, false);
+  }
+  function dragMove(x, y) { if (!DRAG) { return; } var p = relTo(DRAG.area, x, y); DRAG.cb.move(p.x, p.y); }
+  function dragEnd(x, y) { if (!DRAG) { return; } var d = DRAG; DRAG = null; var p = relTo(d.area, x, y); d.cb.end(p.x, p.y); }
+  document.addEventListener('touchmove', function (e) { if (DRAG) { var t = e.changedTouches[0]; dragMove(t.clientX, t.clientY); } }, false);
+  document.addEventListener('touchend', function (e) { if (DRAG) { var t = e.changedTouches[0]; dragEnd(t.clientX, t.clientY); } }, false);
+  document.addEventListener('mousemove', function (e) { if (DRAG) { dragMove(e.clientX, e.clientY); } }, false);
+  document.addEventListener('mouseup', function (e) { if (DRAG) { dragEnd(e.clientX, e.clientY); } }, false);
+  function renderPic(p) {
+    var c = document.createElement('canvas'), S = 600;
+    c.width = c.height = S;
+    var g = c.getContext('2d');
+    var gr = g.createLinearGradient(0, 0, S, S);
+    gr.addColorStop(0, p[2]); gr.addColorStop(1, p[3]);
+    g.fillStyle = gr; g.fillRect(0, 0, S, S);
+    g.fillStyle = 'rgba(255,255,255,.9)';
+    g.beginPath(); g.arc(S / 2, S / 2, S * 0.36, 0, 6.3); g.fill();
+    g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.font = Math.round(S * 0.11) + 'px sans-serif';
+    g.fillText('⭐', S * 0.12, S * 0.12); g.fillText('🌸', S * 0.88, S * 0.88);
+    g.fillText('✨', S * 0.88, S * 0.5); g.fillText('🍀', S * 0.12, S * 0.5);
+    g.font = Math.round(S * 0.58) + 'px sans-serif';
+    g.fillText(p[0], S / 2, S / 2 + S * 0.04);
+    return c.toDataURL('image/png');
+  }
+
+  /* ---------- screens ---------- */
+  var starters = {}, stoppers = {}, current = 'home', currentGroup = null;
+  function makeScreen(id, title) {
+    var s = el('div', 'screen');
+    s.id = 's-' + id;
+    var top = el('div', 'top');
+    var back = el('div', 'back', '🏠');
+    onTap(back, function () { sfx.tap(); show(id === 'grp' || !currentGroup ? 'home' : 'grp'); });
+    top.appendChild(back);
+    var tt = el('div', 'title', title); tt.id = id + 'Title'; top.appendChild(tt);
+    var right = el('div', 'right');
+    right.id = id + 'Right';
+    top.appendChild(right);
+    var body = el('div', 'body');
+    s.appendChild(top); s.appendChild(body);
+    document.body.insertBefore(s, $('fx'));
+    return body;
+  }
+  function show(id) {
+    if (stoppers[current]) { stoppers[current](); }
+    var all = document.querySelectorAll('.screen');
+    for (var i = 0; i < all.length; i++) { all[i].classList.remove('on'); }
+    (id === 'home' ? $('home') : $('s-' + id)).classList.add('on');
+    current = id;
+    if (starters[id]) { starters[id](); }
+  }
+
+  /* ---------- data ---------- */
+  var ANIMALS = [
+    ['🐶', 'Hunden', 'voff voff'], ['🐱', 'Katten', 'mjau'], ['🐮', 'Kua', 'møøø'],
+    ['🐷', 'Grisen', 'nøff nøff'], ['🐑', 'Sauen', 'bæææ'], ['🐓', 'Hanen', 'kykeliky'],
+    ['🐴', 'Hesten', 'knegg knegg'], ['🐸', 'Frosken', 'kvekk kvekk'], ['🐘', 'Elefanten', 'tuuut'],
+    ['🐒', 'Apen', 'u u a a'], ['🐭', 'Musa', 'pip pip'], ['🐻', 'Bjørnen', 'brumm brumm']
+  ];
+  var ABC = [
+    ['A', '🐒', 'Apekatt'], ['B', '🚗', 'Bil'], ['C', '🎻', 'Cello'], ['D', '🚪', 'Dør'],
+    ['E', '🐘', 'Elefant'], ['F', '🐟', 'Fisk'], ['G', '🐷', 'Gris'], ['H', '🐶', 'Hund'],
+    ['I', '🍦', 'Is'], ['J', '🍓', 'Jordbær'], ['K', '🐱', 'Katt'], ['L', '🚚', 'Lastebil'],
+    ['M', '🐭', 'Mus'], ['N', '👃', 'Nese'], ['O', '🐂', 'Okse'], ['P', '🍐', 'Pære'],
+    ['Q', '', ''], ['R', '🌈', 'Regnbue'], ['S', '🌞', 'Sol'], ['T', '🚂', 'Tog'],
+    ['U', '🐺', 'Ulv'], ['V', '💧', 'Vann'], ['W', '', ''], ['X', '', ''], ['Y', '', ''],
+    ['Z', '', ''], ['Æ', '', ''], ['Ø', '👂', 'Øre'], ['Å', '8', 'Åtte']
+  ];
+  var NUM = ['null', 'en', 'to', 'tre', 'fire', 'fem', 'seks', 'sju', 'åtte', 'ni', 'ti',
+    'elleve', 'tolv', 'tretten', 'fjorten', 'femten', 'seksten', 'sytten', 'atten', 'nitten'];
+  (function () {
+    var T = ['', '', 'tjue', 'tretti', 'førti', 'femti', 'seksti', 'sytti', 'åtti', 'nitti'];
+    for (var t = 2; t <= 9; t++) { for (var o = 0; o <= 9; o++) { NUM.push(T[t] + (o ? NUM[o] : '')); } }
+    NUM.push('hundre');
+  })();
+  var THINGS = [
+    ['🍎', 'epler'], ['🍌', 'bananer'], ['🐟', 'fisker'], ['⭐', 'stjerner'],
+    ['🎈', 'ballonger'], ['🚗', 'biler'], ['🐞', 'marihøner'], ['🐥', 'kyllinger']
+  ];
+  var COLORS = [
+    ['#ff4d4d', 'Rød'], ['#3d8bff', 'Blå'], ['#ffd23d', 'Gul'], ['#3cc76b', 'Grønn'],
+    ['#a45cff', 'Lilla'], ['#ff9a2e', 'Oransje'], ['#ff7fc8', 'Rosa']
+  ];
+  var GOOD = ['Riktig!', 'Bra jobba!', 'Supert!', 'Kjempeflink!', 'Hurra!'];
+
+  /* ---------- home: age groups ---------- */
+  var INFO = {
+    biler: ['🚒', 'Biler', '#ffd6a8'], dyr: ['🐶', 'Dyrelyder', '#ffc4b8'], ballong: ['🎈', 'Ballonger', '#bfe3ff'],
+    kjor: ['🚗', 'Kjør bilen', '#d4f0b0'], tegne: ['🎨', 'Tegne', '#ffe7a3'], pus2: ['🖼️', 'Puslespill', '#e2d4ff'],
+    xylo: ['🎶', 'Xylofon', '#ffd0e8'], fyr: ['🎆', 'Fyrverkeri', '#c5d0ff'], tittei: ['🌳', 'Tittei', '#c9f2d4'],
+    former: ['🔷', 'Former', '#fff0b3'], mate: ['🍌', 'Mate dyrene', '#ffd6a8'], skrape: ['✨', 'Skrapebilde', '#e2d4ff'],
+    abc: ['🔤', 'ABC', '#c9f2d4'], finn: ['🔍', 'Finn bokstaven', '#e2d4ff'], telle: ['🍎', 'Telle', '#ffd0e8'],
+    pluss: ['➕', 'Pluss', '#fff0b3'], les: ['📖', 'Les ordet', '#d8e4ff'], huske: ['🃏', 'Huskespill', '#c5f0ee'],
+    pus3: ['🖼️', 'Puslespill', '#ffd6a8'], monster: ['🔁', 'Mønster', '#d4f0b0'], skygge: ['👤', 'Skygger', '#d8e4ff'],
+    odd: ['🤔', 'Hvem passer ikke?', '#ffe7a3'], fang: ['🐻', 'Fang frukten', '#bfe3ff'], muldvarp: ['🐹', 'Klapp dyret', '#ffc4b8'],
+    labyrint: ['🐭', 'Labyrint', '#c9f2d4'], former2: ['⭐', 'Former', '#fff0b3'],
+    matte: ['🔢', 'Matte', '#fff0b3'], gange: ['✖️', 'Gangetabell', '#ffd0e8'], klokka: ['⏰', 'Klokka', '#c5f0ee'],
+    stav: ['✏️', 'Stav ordet', '#c9f2d4'], les2: ['📚', 'Les ordet', '#d8e4ff'], sudoku: ['🍇', 'Sudoku', '#e2d4ff'],
+    skyv: ['🔀', 'Skyvepuslespill', '#ffd6a8'], romskip: ['🚀', 'Romskip', '#c5d0ff'], slange: ['🐍', 'Slange', '#d4f0b0'],
+    huske2: ['🃏', 'Huskespill', '#c5f0ee'], pus4: ['🖼️', 'Puslespill', '#ffc4b8'], pus5: ['🖼️', 'Puslespill', '#e2d4ff']
+  };
+  var LEVELTAG = { pus2: '4 biter', pus3: '9 biter', pus4: '16 biter', pus5: '25 biter', huske: '12 kort', huske2: '20 kort', former: '3', former2: '5' };
+  var GROUPS = [
+    { e: '🐣', t: '1 til 3 år', label: '1–3 år', c: '#ffd6a8', games: ['biler', 'dyr', 'xylo', 'ballong', 'fyr', 'tittei', 'former', 'mate', 'skrape', 'kjor', 'pus2', 'tegne'] },
+    { e: '🎒', t: '4 til 6 år', label: '4–6 år', c: '#c9f2d4', games: ['abc', 'finn', 'telle', 'pluss', 'les', 'monster', 'skygge', 'odd', 'fang', 'muldvarp', 'labyrint', 'former2', 'huske', 'pus3', 'tegne'] },
+    { e: '🚀', t: '7 til 8 år', label: '7–8 år', c: '#d8e4ff', games: ['matte', 'gange', 'klokka', 'stav', 'les2', 'sudoku', 'skyv', 'romskip', 'slange', 'huske2', 'pus4', 'pus5'] }
+  ];
+  (function buildHome() {
+    var tiles = $('tiles');
+    for (var i = 0; i < GROUPS.length; i++) {
+      (function (g) {
+        var t = el('div', 'tile group', '<div class="e">' + g.e + '</div><div class="t">' + g.label + '</div>');
+        t.style.background = g.c;
+        onTap(t, function () { sfx.tap(); say(g.t); currentGroup = g; show('grp'); });
+        tiles.appendChild(t);
+      })(GROUPS[i]);
+    }
+  })();
+  (function () {
+    var body = makeScreen('grp', '');
+    var grid = el('div', 'wrap');
+    body.appendChild(grid);
+    starters.grp = function () {
+      var g = currentGroup;
+      $('grpTitle').innerHTML = g.e + ' ' + g.label;
+      grid.innerHTML = '';
+      for (var i = 0; i < g.games.length; i++) {
+        (function (id) {
+          var f = INFO[id];
+          var tag = LEVELTAG[id] ? '<div class="a">' + LEVELTAG[id] + '</div>' : '';
+          var t = el('div', 'tile', tag + '<div class="e">' + f[0] + '</div><div class="t">' + f[1] + '</div>');
+          t.style.background = f[2];
+          onTap(t, function () { sfx.tap(); say(f[1]); show(id); });
+          grid.appendChild(t);
+        })(g.games[i]);
+      }
+    };
+  })();
+
+  /* ---------- 1. Dyrelyder ---------- */
+  (function () {
+    var body = makeScreen('dyr', 'Dyrelyder');
+    var grid = el('div', 'wrap');
+    body.appendChild(grid);
+    for (var i = 0; i < ANIMALS.length; i++) {
+      (function (a, idx) {
+        var b = el('div', 'big', a[0]);
+        onTap(b, function () {
+          bounce(b);
+          tone(300 + idx * 40, 0.15, 'triangle', 0, 0.15);
+          say(a[1] + ' sier ' + a[2] + '!');
+        });
+        grid.appendChild(b);
+      })(ANIMALS[i], i);
+    }
+  })();
+
+  /* ---------- 2. Ballonger ---------- */
+  (function () {
+    var body = makeScreen('ballong', 'Ballonger');
+    var area = el('div'); area.id = 'bArea'; body.appendChild(area);
+    var B = { list: [], timer: null, raf: null, last: 0, score: 0 };
+    var raf = window.requestAnimationFrame || window.webkitRequestAnimationFrame || function (f) { return setTimeout(function () { f(now()); }, 16); };
+    var caf = window.cancelAnimationFrame || window.webkitCancelAnimationFrame || clearTimeout;
+
+    function score() { $('ballongRight').innerHTML = '⭐ ' + B.score; }
+    function place(b) {
+      var x = b.x + Math.sin(b.wob) * 14;
+      var tr = 'translate3d(' + x.toFixed(1) + 'px,' + b.y.toFixed(1) + 'px,0)';
+      b.el.style.webkitTransform = tr; b.el.style.transform = tr;
+    }
+    function remove(b) {
+      if (b.el.parentNode) { b.el.parentNode.removeChild(b.el); }
+      var i = B.list.indexOf(b);
+      if (i > -1) { B.list.splice(i, 1); }
+    }
+    function popB(b) {
+      if (b.popped) { return; }
+      b.popped = true;
+      unlock(); sfx.pop(); say(b.c[1]);
+      B.score++; score();
+      var s = el('div', 'burst', '✨');
+      s.style.left = (b.x + Math.sin(b.wob) * 14 + 16) + 'px';
+      s.style.top = (b.y + 20) + 'px';
+      area.appendChild(s);
+      setTimeout(function () { if (s.parentNode) { s.parentNode.removeChild(s); } }, 650);
+      remove(b);
+      if (B.score % 10 === 0) { party(); setTimeout(function () { say('Hurra!'); }, 600); }
+    }
+    function spawn() {
+      if (B.list.length >= 7) { return; }
+      var W = area.clientWidth || 768, H = area.clientHeight || 600;
+      var c = COLORS[rnd(COLORS.length)];
+      var d = el('div', 'balloon');
+      d.style.background = c[0];
+      var b = { el: d, x: 10 + rnd(Math.max(1, W - 140)), y: H + 10, v: 45 + Math.random() * 55, c: c, wob: Math.random() * 6.28 };
+      place(b);
+      d.addEventListener('touchstart', function (e) { e.preventDefault(); popB(b); }, false);
+      d.addEventListener('mousedown', function () { popB(b); }, false);
+      area.appendChild(d);
+      B.list.push(b);
+    }
+    function step(t) {
+      var dt = B.last ? Math.min(0.05, (t - B.last) / 1000) : 0.016;
+      B.last = t;
+      for (var i = B.list.length - 1; i >= 0; i--) {
+        var b = B.list[i];
+        b.y -= b.v * dt; b.wob += dt * 2;
+        if (b.y < -220) { remove(b); } else { place(b); }
+      }
+      B.raf = raf(step);
+    }
+    starters.ballong = function () {
+      area.innerHTML = ''; B.list = []; B.score = 0; B.last = 0; score();
+      spawn(); B.timer = setInterval(spawn, 1000); B.raf = raf(step);
+    };
+    stoppers.ballong = function () { clearInterval(B.timer); caf(B.raf); area.innerHTML = ''; B.list = []; };
+  })();
+
+  /* ---------- 3. Tegne ---------- */
+  (function () {
+    var body = makeScreen('tegne', 'Tegne');
+    var pal = el('div'); pal.id = 'palette';
+    var box = el('div'); box.id = 'canvasBox';
+    var cv = el('canvas'); cv.id = 'canvas';
+    box.appendChild(cv); body.appendChild(pal); body.appendChild(box);
+    var cols = [['#ff4d4d', 'Rød'], ['#ff9a2e', 'Oransje'], ['#ffd23d', 'Gul'], ['#3cc76b', 'Grønn'],
+      ['#3d8bff', 'Blå'], ['#a45cff', 'Lilla'], ['#ff7fc8', 'Rosa'], ['#3b3b4f', 'Svart'], ['#ffffff', 'Viskelær']];
+    var ctx = null, color = cols[0][0], pts = {}, dpr = window.devicePixelRatio || 1, sws = [];
+
+    function setup() {
+      var w = box.clientWidth, h = box.clientHeight;
+      cv.width = w * dpr; cv.height = h * dpr;
+      cv.style.width = w + 'px'; cv.style.height = h + 'px';
+      ctx = cv.getContext('2d');
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, w, h);
+      ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+      var size = Math.min(66, Math.floor((pal.clientHeight - 10) / 10) - 6);
+      for (var i = 0; i < sws.length; i++) {
+        sws[i].style.width = size + 'px'; sws[i].style.height = size + 'px';
+        sws[i].style.lineHeight = (size - 10) + 'px'; sws[i].style.fontSize = Math.round(size * 0.5) + 'px';
+      }
+    }
+    function select(sw, c) {
+      for (var i = 0; i < sws.length; i++) { sws[i].classList.remove('sel'); }
+      sw.classList.add('sel'); color = c[0]; bounce(sw); sfx.tap(); say(c[1]);
+    }
+    for (var i = 0; i < cols.length; i++) {
+      (function (c, first) {
+        var sw = el('div', 'sw' + (first ? ' sel' : ''), c[1] === 'Viskelær' ? '⬜' : '');
+        sw.style.background = c[0];
+        onTap(sw, function () { select(sw, c); });
+        pal.appendChild(sw); sws.push(sw);
+      })(cols[i], i === 0);
+    }
+    var clr = el('div', 'sw', '🗑');
+    clr.style.background = '#eee';
+    onTap(clr, function () { bounce(clr); sfx.pop(); say('Ny tegning!'); setup(); });
+    pal.appendChild(clr); sws.push(clr);
+
+    function pos(t) {
+      var r = cv.getBoundingClientRect();
+      return { x: t.clientX - r.left, y: t.clientY - r.top };
+    }
+    function line(a, b) {
+      ctx.strokeStyle = color;
+      ctx.lineWidth = color === '#ffffff' ? 44 : 18;
+      ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x + 0.01, b.y + 0.01); ctx.stroke();
+    }
+    cv.addEventListener('touchstart', function (e) {
+      e.preventDefault();
+      for (var i = 0; i < e.changedTouches.length; i++) {
+        var t = e.changedTouches[i], p = pos(t);
+        pts[t.identifier] = p; line(p, p);
+      }
+    }, false);
+    cv.addEventListener('touchmove', function (e) {
+      e.preventDefault();
+      for (var i = 0; i < e.changedTouches.length; i++) {
+        var t = e.changedTouches[i], p = pos(t), q = pts[t.identifier];
+        if (q) { line(q, p); }
+        pts[t.identifier] = p;
+      }
+    }, false);
+    function end(e) { for (var i = 0; i < e.changedTouches.length; i++) { delete pts[e.changedTouches[i].identifier]; } }
+    cv.addEventListener('touchend', end, false);
+    cv.addEventListener('touchcancel', end, false);
+    var mdown = false;
+    cv.addEventListener('mousedown', function (e) { mdown = true; pts.m = pos(e); line(pts.m, pts.m); }, false);
+    cv.addEventListener('mousemove', function (e) { if (!mdown) { return; } var p = pos(e); line(pts.m, p); pts.m = p; }, false);
+    window.addEventListener('mouseup', function () { mdown = false; }, false);
+
+    starters.tegne = function () { setTimeout(setup, 30); };
+    window.addEventListener('orientationchange', function () { if (current === 'tegne') { setTimeout(setup, 300); } }, false);
+  })();
+
+  /* ---------- 4. ABC ---------- */
+  (function () {
+    var body = makeScreen('abc', 'ABC');
+    var showBox = el('div'); showBox.id = 'abcShow';
+    var grid = el('div', 'wrap'); grid.id = 'abcGrid';
+    body.appendChild(showBox); body.appendChild(grid);
+    function display(a) {
+      showBox.innerHTML = '<span class="L">' + a[0] + a[0].toLowerCase() + '</span>' +
+        (a[1] ? '<span class="E">' + a[1] + '</span><span class="W">' + a[2] + '</span>' : '');
+      bounce(showBox);
+      say(a[2] ? a[0] + '. ' + a[2] + '!' : a[0]);
+    }
+    for (var i = 0; i < ABC.length; i++) {
+      (function (a, idx) {
+        var b = el('div', 'letter', a[0]);
+        b.style.background = PALETTE[idx % PALETTE.length];
+        onTap(b, function () { bounce(b); sfx.tap(); display(a); });
+        grid.appendChild(b);
+      })(ABC[i], i);
+    }
+    starters.abc = function () {
+      showBox.innerHTML = '<span class="W">Trykk på en bokstav 👇</span>';
+    };
+  })();
+
+  /* ---------- 5. Finn bokstaven ---------- */
+  (function () {
+    var body = makeScreen('finn', 'Finn bokstaven');
+    var prompt = el('div', 'prompt');
+    var choices = el('div', 'choices wrap');
+    body.appendChild(prompt); body.appendChild(choices);
+    var target = null, stars = 0, locked = false;
+    function stars_() { $('finnRight').innerHTML = '⭐ ' + stars; }
+    function ask() { say(['Finn bokstaven', target]); }
+    function round() {
+      locked = false;
+      var n = stars >= 8 ? 4 : 3;
+      var pool = shuffle(ABC.slice());
+      var pick = pool.slice(0, n);
+      var prev = target;
+      target = pick[0][0];
+      if (target === prev) { target = pick[1][0]; }
+      prompt.innerHTML = '';
+      prompt.appendChild(el('span', null, 'Finn bokstaven'));
+      var sp = el('div', 'speaker', '🔊');
+      onTap(sp, function () { bounce(sp); ask(); });
+      prompt.appendChild(sp);
+      choices.innerHTML = '';
+      shuffle(pick);
+      for (var i = 0; i < pick.length; i++) {
+        (function (L, idx) {
+          var c = el('div', 'choice', L);
+          c.style.background = PALETTE[(idx * 3 + stars) % PALETTE.length];
+          onTap(c, function () {
+            if (locked) { return; }
+            if (L === target) {
+              locked = true; bounce(c); sfx.good(); stars++; stars_();
+              var g = GOOD[rnd(GOOD.length)];
+              say([g, 'Det er', L]);
+              if (stars % 5 === 0) { party(); }
+              setTimeout(function () { round(); ask(); }, 2200);
+            } else {
+              bounce(c, 'wobble'); sfx.soft(); say(['Prøv igjen.', 'Finn bokstaven', target]);
+            }
+          });
+          choices.appendChild(c);
+        })(pick[i][0], i);
+      }
+    }
+    starters.finn = function () { stars = 0; stars_(); target = null; round(); setTimeout(ask, 900); };
+  })();
+
+  /* ---------- 6. Telle ---------- */
+  (function () {
+    var body = makeScreen('telle', 'Telle');
+    var prompt = el('div', 'prompt');
+    var area = el('div', 'wrap'); area.id = 'countArea';
+    var choices = el('div', 'wrap'); choices.id = 'countChoices';
+    body.appendChild(prompt); body.appendChild(area); body.appendChild(choices);
+    var stars = 0, n = 0, thing = null, counted = 0, locked = false;
+    function stars_() { $('telleRight').innerHTML = '⭐ ' + stars; }
+    function ask() { say('Hvor mange ' + thing[1] + '?'); }
+    function round() {
+      locked = false; counted = 0;
+      var max = stars >= 10 ? 10 : (stars >= 5 ? 7 : 5);
+      n = 1 + rnd(max);
+      thing = THINGS[rnd(THINGS.length)];
+      prompt.innerHTML = '';
+      prompt.appendChild(el('span', null, 'Hvor mange ' + thing[1] + '?'));
+      var sp = el('div', 'speaker', '🔊');
+      onTap(sp, function () { bounce(sp); ask(); });
+      prompt.appendChild(sp);
+      area.innerHTML = '';
+      for (var i = 0; i < n; i++) {
+        (function () {
+          var o = el('div', 'obj', thing[0]);
+          onTap(o, function () {
+            if (o.classList.contains('done')) { return; }
+            counted++;
+            o.classList.add('done');
+            o.appendChild(el('div', 'n', String(counted)));
+            bounce(o); tone(400 + counted * 60, 0.15, 'triangle', 0, 0.15);
+            say(NUM[counted]);
+          });
+          area.appendChild(o);
+        })();
+      }
+      var opts = [n];
+      while (opts.length < 3) {
+        var k = 1 + rnd(max);
+        if (opts.indexOf(k) === -1) { opts.push(k); }
+      }
+      shuffle(opts);
+      choices.innerHTML = '';
+      for (var j = 0; j < opts.length; j++) {
+        (function (k, idx) {
+          var c = el('div', 'choice', String(k));
+          c.style.background = PALETTE[(idx * 2 + 1) % PALETTE.length];
+          onTap(c, function () {
+            if (locked) { return; }
+            if (k === n) {
+              locked = true; bounce(c); sfx.good(); stars++; stars_();
+              say([GOOD[rnd(GOOD.length)], 'Det er', NUM[n]]);
+              if (stars % 5 === 0) { party(); }
+              setTimeout(function () { round(); ask(); }, 2300);
+            } else {
+              bounce(c, 'wobble'); sfx.soft(); say('Prøv igjen. Tell med fingeren!');
+            }
+          });
+          choices.appendChild(c);
+        })(opts[j], j);
+      }
+    }
+    starters.telle = function () { stars = 0; stars_(); round(); setTimeout(ask, 900); };
+  })();
+
+  /* ---------- Huskespill (factory) ---------- */
+  var CARDPOOL = [];
+  function makeHuske(id, pairs, cols) {
+    var body = makeScreen(id, 'Huskespill');
+    var grid = el('div', 'wrap'); grid.id = id + 'Grid'; grid.style.padding = '10px 20px';
+    var again = el('div', 'again', 'Spill igjen');
+    body.appendChild(grid); body.appendChild(again);
+    var first = null, lock = false, found = 0;
+    var w = (88 / cols).toFixed(1) + '%', h = (88 / Math.ceil(pairs * 2 / cols)).toFixed(1) + '%';
+    onTap(again, function () { sfx.tap(); start(); });
+    function start() {
+      again.style.display = 'none';
+      first = null; lock = false; found = 0;
+      $(id + 'Right').innerHTML = '';
+      var pick = shuffle(CARDPOOL.slice()).slice(0, pairs);
+      var deck = shuffle(pick.concat(pick));
+      grid.innerHTML = '';
+      for (var i = 0; i < deck.length; i++) {
+        (function (a) {
+          var c = el('div', 'card', '⭐');
+          c.style.width = w; c.style.height = h;
+          if (cols > 4) { c.style.fontSize = '64px'; }
+          c.setAttribute('data-k', a[0]);
+          onTap(c, function () {
+            if (lock || c.classList.contains('up')) { return; }
+            c.classList.add('up'); c.innerHTML = a[0]; sfx.flip(); bounce(c);
+            if (!first) { first = c; return; }
+            if (first.getAttribute('data-k') === c.getAttribute('data-k')) {
+              first.classList.add('ok'); c.classList.add('ok');
+              first = null; found++;
+              sfx.good(); say(a[1] + '!');
+              $(id + 'Right').innerHTML = '⭐ ' + found;
+              if (found === pairs) {
+                setTimeout(function () { party(); say('Hurra! Du klarte det!'); again.style.display = 'block'; }, 700);
+              }
+            } else {
+              lock = true;
+              var f = first; first = null;
+              setTimeout(function () {
+                f.classList.remove('up'); c.classList.remove('up');
+                f.innerHTML = '⭐'; c.innerHTML = '⭐'; lock = false;
+              }, 1000);
+            }
+          });
+          grid.appendChild(c);
+        })(deck[i]);
+      }
+    }
+    starters[id] = start;
+  }
+
+  /* ---------- vehicle sounds ---------- */
+  var vsnd = {
+    siren: function () { for (var i = 0; i < 3; i++) { tone(700, 0.35, 'sawtooth', i * 0.7, 0.08, 1000); tone(1000, 0.35, 'sawtooth', i * 0.7 + 0.35, 0.08, 700); } },
+    horn: function () { tone(415, 0.25, 'square', 0, 0.1); tone(523, 0.25, 'square', 0, 0.08); tone(415, 0.4, 'square', 0.35, 0.1); tone(523, 0.4, 'square', 0.35, 0.08); },
+    engine: function () { for (var i = 0; i < 8; i++) { tone(70 + i * 6, 0.14, 'sawtooth', i * 0.12, 0.14); } },
+    bell: function () { tone(1800, 0.4, 'sine', 0, 0.15); tone(1800, 0.5, 'sine', 0.3, 0.15); },
+    whistle: function () { tone(880, 0.6, 'square', 0, 0.06); tone(1100, 0.6, 'square', 0, 0.05); tone(880, 0.9, 'square', 0.7, 0.06); tone(1100, 0.9, 'square', 0.7, 0.05); },
+    ship: function () { tone(110, 1.2, 'sawtooth', 0, 0.15); tone(165, 1.2, 'sawtooth', 0, 0.08); },
+    plane: function () { tone(200, 1.6, 'sawtooth', 0, 0.08, 600); tone(205, 1.6, 'sawtooth', 0, 0.06, 610); },
+    rocket: function () { tone(100, 1.5, 'sawtooth', 0, 0.12, 2000); tone(1500, 0.3, 'sine', 1.4, 0.15); },
+    heli: function () { for (var i = 0; i < 12; i++) { tone(90, 0.06, 'square', i * 0.11, 0.15); } }
+  };
+  var VEHICLES = [
+    ['🚗', 'Bil', 'Bilen sier tut tut!', 'horn'], ['🚒', 'Brannbil', 'Brannbilen sier babu babu!', 'siren'],
+    ['🚓', 'Politibil', 'Politibilen kommer!', 'siren'], ['🚑', 'Ambulanse', 'Ambulansen kjører fort!', 'siren'],
+    ['🚌', 'Buss', 'Bussen sier tut!', 'horn'], ['🚚', 'Lastebil', 'Lastebilen sier brrrom!', 'engine'],
+    ['🚜', 'Traktor', 'Traktoren sier dunk dunk dunk!', 'engine'], ['🚂', 'Tog', 'Toget sier tsjo tsjo!', 'whistle'],
+    ['✈️', 'Fly', 'Flyet flyr høyt!', 'plane'], ['🚁', 'Helikopter', 'Helikopteret sier vopp vopp vopp!', 'heli'],
+    ['🚢', 'Båt', 'Båten sier buuuu!', 'ship'], ['🚲', 'Sykkel', 'Sykkelen sier pling pling!', 'bell'],
+    ['🚀', 'Rakett', 'Tre, to, en, rakett!', 'rocket']
+  ];
+
+  /* ---------- Biler ---------- */
+  (function () {
+    var body = makeScreen('biler', 'Biler');
+    var grid = el('div', 'wrap');
+    body.appendChild(grid);
+    for (var i = 0; i < VEHICLES.length; i++) {
+      (function (v) {
+        var b = el('div', 'big', v[0]);
+        onTap(b, function () { bounce(b); vsnd[v[3]](); setTimeout(function () { say(v[2]); }, 250); });
+        grid.appendChild(b);
+      })(VEHICLES[i]);
+    }
+  })();
+
+  /* ---------- Kjør bilen ---------- */
+  (function () {
+    var body = makeScreen('kjor', 'Kjør bilen');
+    var road = el('div'); road.id = 'road';
+    road.appendChild(el('div', 'lane'));
+    var car = el('div', null, '🚗'); car.id = 'car';
+    road.appendChild(car); body.appendChild(road);
+    var cx = 120, cy = 200, stars = [], count = 0, eng = null, eg = null, lastMove = 0;
+    function put(n, x, y) { var tr = 'translate3d(' + x + 'px,' + y + 'px,0)'; n.style.webkitTransform = tr; n.style.transform = tr; }
+    function score() { $('kjorRight').innerHTML = '⭐ ' + count; }
+    function addStar() {
+      var W = road.clientWidth, H = road.clientHeight;
+      var s = { el: el('div', 'star', '⭐'), x: 60 + rnd(W - 120), y: 60 + rnd(H - 120) };
+      put(s.el, s.x, s.y); road.appendChild(s.el); stars.push(s);
+    }
+    function engineOn() {
+      if (!actx || eng) { return; }
+      try {
+        eng = actx.createOscillator(); eg = actx.createGain();
+        eng.type = 'sawtooth'; eng.frequency.value = 60; eg.gain.value = 0.0001;
+        eng.connect(eg); eg.connect(actx.destination);
+        if (eng.start) { eng.start(0); } else { eng.noteOn(0); }
+      } catch (e) { eng = null; }
+    }
+    function engineSet(speed) {
+      if (!eng) { return; }
+      var t = actx.currentTime;
+      eng.frequency.setTargetAtTime(55 + Math.min(speed, 40) * 3, t, 0.05);
+      eg.gain.setTargetAtTime(speed > 0.5 ? 0.09 : 0.03, t, 0.08);
+    }
+    function engineOff() {
+      if (!eng) { return; }
+      try { if (eng.stop) { eng.stop(0); } else { eng.noteOff(0); } } catch (e) {}
+      eng = null;
+    }
+    function move(x, y) {
+      var r = road.getBoundingClientRect();
+      x -= r.left; y -= r.top;
+      var dx = x - cx, sp = Math.sqrt(dx * dx + (y - cy) * (y - cy));
+      cx = x; cy = y;
+      if (Math.abs(dx) > 2) { car.flip = dx > 2; }
+      var tr ='translate3d(' + cx + 'px,' + cy + 'px,0)' + (car.flip ? ' scaleX(-1)' : '');
+      car.style.webkitTransform = tr; car.style.transform = tr;
+      engineSet(sp);
+      lastMove = now();
+      for (var i = stars.length - 1; i >= 0; i--) {
+        var s = stars[i];
+        if (Math.abs(s.x - cx) < 70 && Math.abs(s.y - cy) < 70) {
+          road.removeChild(s.el); stars.splice(i, 1); count++; score();
+          sfx.pop(); tone(1300, 0.2, 'sine', 0.05, 0.15);
+          if (count % 10 === 0) { party(); say('Hurra!'); } else { say(NUM[count % 10]); }
+          addStar();
+        }
+      }
+    }
+    road.addEventListener('touchstart', function (e) {
+      e.preventDefault(); unlock(); engineOn();
+      var t = e.touches[0]; move(t.clientX, t.clientY);
+    }, false);
+    road.addEventListener('touchmove', function (e) { e.preventDefault(); var t = e.touches[0]; move(t.clientX, t.clientY); }, false);
+    road.addEventListener('touchend', function () { engineSet(0); }, false);
+    var md = false;
+    road.addEventListener('mousedown', function (e) { md = true; unlock(); engineOn(); move(e.clientX, e.clientY); }, false);
+    road.addEventListener('mousemove', function (e) { if (md) { move(e.clientX, e.clientY); } }, false);
+    window.addEventListener('mouseup', function () { md = false; engineSet(0); }, false);
+    var idle = null;
+    starters.kjor = function () {
+      for (var i = 0; i < stars.length; i++) { if (stars[i].el.parentNode) { road.removeChild(stars[i].el); } }
+      stars = []; count = 0; score(); car.flip = true;
+      setTimeout(function () {
+        cx = 120; cy = road.clientHeight / 2;
+        var tr = 'translate3d(' + cx + 'px,' + cy + 'px,0) scaleX(-1)';
+        car.style.webkitTransform = tr; car.style.transform = tr;
+        for (var j = 0; j < 4; j++) { addStar(); }
+      }, 30);
+      say('Dra bilen og samle stjerner!');
+      idle = setInterval(function () { if (now() - lastMove > 400) { engineSet(0); } }, 300);
+    };
+    stoppers.kjor = function () { clearInterval(idle); engineOff(); };
+  })();
+
+  /* ---------- word lists ---------- */
+  var WORDS = [
+    ['BIL', '🚗'], ['SOL', '🌞'], ['IS', '🍦'], ['KATT', '🐱'], ['HUND', '🐶'], ['FISK', '🐟'],
+    ['TOG', '🚂'], ['MUS', '🐭'], ['GRIS', '🐷'], ['KU', '🐮'], ['BUSS', '🚌'], ['FLY', '✈️'],
+    ['BÅT', '🚢'], ['EPLE', '🍎'], ['HUS', '🏠'], ['BALL', '⚽'], ['SAU', '🐑'], ['MÅNE', '🌙']
+  ];
+  var LONGWORDS = [
+    ['APE', '🐒'], ['HEST', '🐴'], ['FROSK', '🐸'], ['BANAN', '🍌'], ['BJØRN', '🐻'], ['SKOLE', '🏫'],
+    ['RAKETT', '🚀'], ['BLOMST', '🌸'], ['SYKKEL', '🚲'], ['KLOKKE', '⏰'], ['STJERNE', '⭐'], ['ELEFANT', '🐘'],
+    ['REGNBUE', '🌈'], ['TRAKTOR', '🚜'], ['JORDBÆR', '🍓'], ['LASTEBIL', '🚚'], ['PARAPLY', '☔'], ['HELIKOPTER', '🚁'],
+    ['SNØMANN', '⛄'], ['PINGVIN', '🐧'], ['SKILPADDE', '🐢']
+  ];
+
+  /* ---------- Les ordet (factory) ---------- */
+  function makeLes(id, list, n) {
+    var body = makeScreen(id, 'Les ordet');
+    var prompt = el('div', 'prompt');
+    var choices = el('div', 'choices wrap');
+    body.appendChild(prompt); body.appendChild(choices);
+    var target = null, stars = 0, locked = false;
+    function round() {
+      locked = false;
+      var pick = shuffle(list.slice()).slice(0, n);
+      if (target && pick[0][0] === target[0]) { pick.reverse(); }
+      target = pick[0];
+      prompt.innerHTML = '';
+      var wd = el('span', 'word', target[0]);
+      if (target[0].length > 7) { wd.style.fontSize = '80px'; }
+      prompt.appendChild(wd);
+      var sp = el('div', 'speaker', '🔊');
+      onTap(sp, function () { bounce(sp); say(target[0].toLowerCase()); });
+      prompt.appendChild(sp);
+      choices.innerHTML = '';
+      shuffle(pick);
+      for (var i = 0; i < pick.length; i++) {
+        (function (w) {
+          var c = el('div', 'pic', w[1]);
+          if (n > 3) { c.style.width = c.style.height = '170px'; c.style.lineHeight = '170px'; c.style.fontSize = '110px'; c.style.margin = '12px'; }
+          onTap(c, function () {
+            if (locked) { return; }
+            if (w === target) {
+              locked = true; bounce(c); sfx.good(); stars++; $(id + 'Right').innerHTML = '⭐ ' + stars;
+              say([GOOD[rnd(GOOD.length)], w[0].toLowerCase()]);
+              if (stars % 5 === 0) { party(); }
+              setTimeout(round, 2000);
+            } else { bounce(c, 'wobble'); sfx.soft(); say('Prøv igjen.'); }
+          });
+          choices.appendChild(c);
+        })(pick[i]);
+      }
+    }
+    starters[id] = function () { stars = 0; $(id + 'Right').innerHTML = '⭐ 0'; target = null; round(); say('Les ordet, og trykk på riktig bilde'); };
+  }
+
+  /* ---------- Matte (factory): pluss / minus ---------- */
+  function makeMath(id, title, easyMax, hardMax, ops, pictures, nChoices) {
+    var body = makeScreen(id, title);
+    var prompt = el('div', 'prompt'); prompt.style.height = '230px';
+    var choices = el('div', 'wrap');
+    choices.style.position = 'absolute'; choices.style.top = '230px'; choices.style.left = '0';
+    choices.style.right = '0'; choices.style.bottom = '0'; choices.style.height = 'auto';
+    body.appendChild(prompt); body.appendChild(choices);
+    var a = 0, b = 0, n = 0, op = '+', stars = 0, locked = false, thing = '🍎';
+    function rep(k) { var s = ''; for (var i = 0; i < k; i++) { s += thing; } return s; }
+    function opWord() { return op === '+' ? 'pluss' : (op === '-' ? 'minus' : 'ganger'); }
+    function ask() { say([NUM[a], opWord(), NUM[b], 'er?']); }
+    function round() {
+      locked = false;
+      var max = stars >= 8 ? hardMax : easyMax;
+      op = ops[rnd(ops.length)];
+      if (op === '+') { a = 1 + rnd(max - 1); b = 1 + rnd(max - a); n = a + b; }
+      else if (op === '-') { a = 2 + rnd(max - 1); b = 1 + rnd(a - 1); n = a - b; }
+      else {
+        var tabs = stars < 6 ? [2, 5, 10] : [2, 3, 4, 5, 6, 7, 8, 9, 10];
+        a = tabs[rnd(tabs.length)]; b = 1 + rnd(10);
+        if (rnd(2)) { var sw = a; a = b; b = sw; }
+        n = a * b; max = 100;
+      }
+      thing = THINGS[rnd(THINGS.length)][0];
+      prompt.innerHTML = '';
+      var top = pictures ? '<div>' + rep(a) + ' <b>' + op + '</b> ' + rep(b) + '</div>' : '';
+      var sum = el('div', 'sum', top + '<div><b>' + a + ' ' + (op === '+' ? '+' : (op === '-' ? '−' : '×')) + ' ' + b + ' = ?</b></div>');
+      if (!pictures) { sum.style.fontSize = '110px'; }
+      prompt.appendChild(sum);
+      var sp = el('div', 'speaker', '🔊');
+      onTap(sp, function () { bounce(sp); ask(); });
+      prompt.appendChild(sp);
+      var opts = [n], tries = 0;
+      var cands = op === 'x' ? shuffle([n + a, n - a, n + b, n - b, n + 1, n - 1, n + 10, n - 10, n + 2]) : [];
+      for (var ci = 0; ci < cands.length && opts.length < nChoices; ci++) { if (cands[ci] > 0 && cands[ci] <= 100 && opts.indexOf(cands[ci]) === -1) { opts.push(cands[ci]); } }
+      while (opts.length < nChoices && tries < 200) {
+        tries++;
+        var k = n + rnd(9) - 4;
+        if (k >= 0 && k <= max && opts.indexOf(k) === -1) { opts.push(k); }
+      }
+      shuffle(opts);
+      choices.innerHTML = '';
+      for (var j = 0; j < opts.length; j++) {
+        (function (k, idx) {
+          var c = el('div', 'choice', String(k));
+          if (k > 99) { c.style.fontSize = '70px'; } else if (k > 9) { c.style.fontSize = (nChoices > 3 ? 90 : 110) + 'px'; }
+          if (nChoices > 3) { c.style.width = c.style.height = '170px'; c.style.lineHeight = '170px'; c.style.margin = '12px'; }
+          c.style.background = PALETTE[(idx * 3 + 2) % PALETTE.length];
+          onTap(c, function () {
+            if (locked) { return; }
+            if (k === n) {
+              locked = true; bounce(c); sfx.good(); stars++; $(id + 'Right').innerHTML = '⭐ ' + stars;
+              say([GOOD[rnd(GOOD.length)], NUM[a], opWord(), NUM[b], 'er', NUM[n]]);
+              if (stars % 5 === 0) { party(); }
+              setTimeout(function () { round(); ask(); }, 3200);
+            } else { bounce(c, 'wobble'); sfx.soft(); say('Prøv igjen.'); }
+          });
+          choices.appendChild(c);
+        })(opts[j], j);
+      }
+    }
+    starters[id] = function () { stars = 0; $(id + 'Right').innerHTML = '⭐ 0'; round(); setTimeout(ask, 900); };
+  }
+
+  /* ---------- Stav ordet ---------- */
+  (function () {
+    var body = makeScreen('stav', 'Stav ordet');
+    var prompt = el('div', 'prompt'); prompt.style.height = '200px';
+    var slots = el('div', 'wrap'); slots.style.height = '130px';
+    var letters = el('div', 'wrap');
+    letters.style.position = 'absolute'; letters.style.top = '330px'; letters.style.left = '0';
+    letters.style.right = '0'; letters.style.bottom = '0'; letters.style.height = 'auto';
+    body.appendChild(prompt); body.appendChild(slots); body.appendChild(letters);
+    var word = null, pos = 0, stars = 0, locked = false, slotEls = [];
+    var ALPH = 'ABDEFGHIJKLMNOPRSTUVØÅÆ';
+    function round() {
+      locked = false; pos = 0;
+      var len = stars >= 10 ? 99 : (stars >= 4 ? 7 : 5);
+      var pool = [];
+      for (var i = 0; i < LONGWORDS.length; i++) { if (LONGWORDS[i][0].length <= len) { pool.push(LONGWORDS[i]); } }
+      var w = pool[rnd(pool.length)];
+      if (word && w === word && pool.length > 1) { w = pool[(pool.indexOf(w) + 1) % pool.length]; }
+      word = w;
+      prompt.innerHTML = '';
+      prompt.appendChild(el('span', null, '<span style="font-size:150px">' + word[1] + '</span>'));
+      var sp = el('div', 'speaker', '🔊');
+      onTap(sp, function () { bounce(sp); say(word[0].toLowerCase()); });
+      prompt.appendChild(sp);
+      slots.innerHTML = ''; slotEls = [];
+      var sz = word[0].length > 7 ? 70 : 90;
+      for (var s2 = 0; s2 < word[0].length; s2++) {
+        var sl = el('div', 'letter', '');
+        sl.style.width = sl.style.height = sz + 'px'; sl.style.lineHeight = sz + 'px'; sl.style.fontSize = Math.round(sz * 0.6) + 'px';
+        sl.style.background = '#fff'; sl.style.color = '#3b3b4f'; sl.style.border = '4px dashed #ccc';
+        slots.appendChild(sl); slotEls.push(sl);
+      }
+      var tiles = word[0].split('');
+      var extra = stars >= 4 ? 3 : 2;
+      while (extra > 0) { var x = ALPH.charAt(rnd(ALPH.length)); if (word[0].indexOf(x) === -1 && tiles.indexOf(x) === -1) { tiles.push(x); extra--; } }
+      shuffle(tiles);
+      letters.innerHTML = '';
+      for (var t = 0; t < tiles.length; t++) {
+        (function (L, idx) {
+          var b = el('div', 'letter', L);
+          b.style.width = b.style.height = '96px'; b.style.lineHeight = '96px'; b.style.fontSize = '58px'; b.style.margin = '8px';
+          b.style.background = PALETTE[idx % PALETTE.length];
+          onTap(b, function () {
+            if (locked || b.style.visibility === 'hidden') { return; }
+            if (L === word[0].charAt(pos)) {
+              slotEls[pos].innerHTML = L; slotEls[pos].style.border = '4px solid #3cc76b'; bounce(slotEls[pos]);
+              b.style.visibility = 'hidden'; tone(500 + pos * 70, 0.15, 'triangle', 0, 0.15);
+              pos++;
+              if (pos === word[0].length) {
+                locked = true; sfx.good(); stars++; $('stavRight').innerHTML = '⭐ ' + stars;
+                say([GOOD[rnd(GOOD.length)], word[0].toLowerCase()]);
+                if (stars % 5 === 0) { party(); }
+                setTimeout(function () { round(); say('Stav ordet'); }, 2600);
+              } else { say(L); }
+            } else { bounce(b, 'wobble'); sfx.soft(); say('Prøv igjen.'); }
+          });
+          letters.appendChild(b);
+        })(tiles[t], t);
+      }
+    }
+    starters.stav = function () { stars = 0; $('stavRight').innerHTML = '⭐ 0'; word = null; round(); say('Stav ordet'); };
+  })();
+
+  /* ---------- Puslespill (factory) ---------- */
+  var PUZ = [];
+  function makePuzzle(id, N, guide) {
+    var body = makeScreen(id, 'Puslespill');
+    var area = el('div'); area.style.position = 'absolute'; area.style.top = '0'; area.style.left = '0';
+    area.style.right = '0'; area.style.bottom = '0';
+    body.appendChild(area);
+    var next = el('div', 'again', 'Neste ➜'); next.style.zIndex = '999';
+    body.appendChild(next);
+    var pieces = [], placed = 0, idx = rnd(1000), active = null, offx = 0, offy = 0, zc = 10, done = 0, cur = null;
+    function render(p) {
+      var c = document.createElement('canvas'), S = 600;
+      c.width = c.height = S;
+      var g = c.getContext('2d');
+      var gr = g.createLinearGradient(0, 0, S, S);
+      gr.addColorStop(0, p[2]); gr.addColorStop(1, p[3]);
+      g.fillStyle = gr; g.fillRect(0, 0, S, S);
+      g.fillStyle = 'rgba(255,255,255,.9)';
+      g.beginPath(); g.arc(S / 2, S / 2, S * 0.36, 0, 6.3); g.fill();
+      g.textAlign = 'center'; g.textBaseline = 'middle';
+      g.font = Math.round(S * 0.11) + 'px sans-serif';
+      g.fillText('⭐', S * 0.12, S * 0.12); g.fillText('🌸', S * 0.88, S * 0.88);
+      g.fillText('✨', S * 0.88, S * 0.5); g.fillText('🍀', S * 0.12, S * 0.5);
+      g.font = Math.round(S * 0.58) + 'px sans-serif';
+      g.fillText(p[0], S / 2, S / 2 + S * 0.04);
+      return c.toDataURL('image/png');
+    }
+    function setXY(pc) { pc.el.style.left = pc.x + 'px'; pc.el.style.top = pc.y + 'px'; }
+    function start(first) {
+      area.innerHTML = ''; next.style.display = 'none'; pieces = []; placed = 0; active = null;
+      cur = PUZ[idx % PUZ.length];
+      var img = render(cur);
+      var W = area.clientWidth || 1024, H = area.clientHeight || 670, land = W > H;
+      var bs = Math.floor(land ? Math.min(H - 30, W * 0.55) : Math.min(W - 40, H * 0.52));
+      var ps = bs / N;
+      var bx = land ? 20 : Math.round((W - bs) / 2), by = land ? Math.round((H - bs) / 2) : 12;
+      var board = el('div');
+      board.style.cssText = 'position:absolute;left:' + bx + 'px;top:' + by + 'px;width:' + bs + 'px;height:' + bs + 'px;background:#fff;border-radius:14px;box-shadow:0 6px 0 rgba(0,0,0,.1);overflow:hidden';
+      if (guide) {
+        var gd = el('div');
+        gd.style.cssText = 'position:absolute;top:0;left:0;right:0;bottom:0;opacity:.22;background-size:100% 100%';
+        gd.style.backgroundImage = 'url(' + img + ')';
+        board.appendChild(gd);
+      }
+      for (var k = 1; k < N; k++) {
+        var v = el('div'); v.style.cssText = 'position:absolute;top:0;bottom:0;width:2px;background:rgba(0,0,0,.08);left:' + Math.round(k * ps) + 'px'; board.appendChild(v);
+        var hz = el('div'); hz.style.cssText = 'position:absolute;left:0;right:0;height:2px;background:rgba(0,0,0,.08);top:' + Math.round(k * ps) + 'px'; board.appendChild(hz);
+      }
+      area.appendChild(board);
+      var tx0, tx1, ty0, ty1;
+      if (land) { tx0 = bx + bs + 20; tx1 = W - ps - 10; ty0 = 10; ty1 = H - ps - 10; }
+      else { tx0 = 10; tx1 = W - ps - 10; ty0 = by + bs + 15; ty1 = H - ps - 10; }
+      for (var r = 0; r < N; r++) {
+        for (var c = 0; c < N; c++) {
+          var d = el('div');
+          d.style.cssText = 'position:absolute;width:' + Math.ceil(ps) + 'px;height:' + Math.ceil(ps) + 'px;border-radius:8px;box-shadow:0 4px 8px rgba(0,0,0,.25);border:2px solid rgba(255,255,255,.85)';
+          d.style.backgroundImage = 'url(' + img + ')';
+          d.style.backgroundSize = bs + 'px ' + bs + 'px';
+          d.style.backgroundPosition = (-c * ps) + 'px ' + (-r * ps) + 'px';
+          var pc = { el: d, tx: bx + c * ps, ty: by + r * ps, x: tx0 + Math.random() * Math.max(1, tx1 - tx0), y: ty0 + Math.random() * Math.max(1, ty1 - ty0), done: false };
+          setXY(pc); area.appendChild(d); pieces.push(pc);
+          (function (pc2) {
+            d.addEventListener('touchstart', function (e) { e.preventDefault(); unlock(); var t = e.changedTouches[0]; grab(pc2, t.clientX, t.clientY); }, false);
+            d.addEventListener('mousedown', function (e) { unlock(); grab(pc2, e.clientX, e.clientY); }, false);
+          })(pc);
+        }
+      }
+      ps0 = ps;
+      if (first) { say('Legg bitene på plass!'); }
+    }
+    var ps0 = 100;
+    function rel(x, y) { var r = area.getBoundingClientRect(); return { x: x - r.left, y: y - r.top }; }
+    function grab(pc, x, y) {
+      if (pc.done) { return; }
+      var p = rel(x, y);
+      active = pc; offx = p.x - pc.x; offy = p.y - pc.y;
+      pc.el.style.zIndex = ++zc;
+      pc.el.style.webkitTransform = pc.el.style.transform = 'scale(1.08)';
+      tone(500, 0.06, 'sine', 0, 0.1);
+    }
+    function moveTo(x, y) {
+      if (!active) { return; }
+      var p = rel(x, y);
+      active.x = p.x - offx; active.y = p.y - offy; setXY(active);
+    }
+    function drop() {
+      if (!active) { return; }
+      var pc = active; active = null;
+      pc.el.style.webkitTransform = pc.el.style.transform = '';
+      var dx = pc.x - pc.tx, dy = pc.y - pc.ty;
+      if (Math.sqrt(dx * dx + dy * dy) < ps0 * 0.38) {
+        pc.x = pc.tx; pc.y = pc.ty; setXY(pc); pc.done = true;
+        pc.el.style.zIndex = 1; pc.el.style.boxShadow = 'none'; pc.el.style.border = '0'; pc.el.style.borderRadius = '0';
+        bounce(pc.el); tone(880, 0.12, 'triangle', 0, 0.15); tone(1320, 0.15, 'triangle', 0.08, 0.12);
+        placed++;
+        if (placed === pieces.length) {
+          sfx.good(); party(); done++;
+          $(id + 'Right').innerHTML = '⭐ ' + done;
+          say(['Hurra! Du klarte det!', cur[1] + '!']);
+          setTimeout(function () { next.style.display = 'block'; }, 1200);
+        }
+      }
+    }
+    area.addEventListener('touchmove', function (e) { e.preventDefault(); var t = e.changedTouches[0]; moveTo(t.clientX, t.clientY); }, false);
+    area.addEventListener('touchend', drop, false);
+    area.addEventListener('touchcancel', drop, false);
+    area.addEventListener('mousemove', function (e) { moveTo(e.clientX, e.clientY); }, false);
+    window.addEventListener('mouseup', drop, false);
+    onTap(next, function () { sfx.tap(); idx++; start(false); });
+    starters[id] = function () { $(id + 'Right').innerHTML = done ? '⭐ ' + done : ''; setTimeout(function () { start(true); }, 30); };
+  }
+
+  /* ======================================================================
+     NYE SPILL 1–3 ÅR
+     ====================================================================== */
+
+  /* ---------- Xylofon ---------- */
+  (function () {
+    var body = makeScreen('xylo', 'Xylofon');
+    var area = fill(el('div'));
+    var row = el('div', 'wrap');
+    area.appendChild(row); body.appendChild(area);
+    var NOTES = [523.25, 587.33, 659.25, 698.46, 783.99, 880, 987.77, 1046.5];
+    var COLS = ['#ff4d4d', '#ff9a2e', '#ffd23d', '#3cc76b', '#20b8b0', '#3d8bff', '#a45cff', '#ff7fc8'];
+    var bars = [], last = -1, timers = [];
+    for (var i = 0; i < 8; i++) {
+      var b = el('div', 'xbar');
+      b.style.background = COLS[i];
+      b.style.height = (440 - i * 22) + 'px';
+      b.setAttribute('data-i', String(i));
+      b.innerHTML = '<span class="pin" style="top:22px"></span><span class="pin" style="bottom:22px"></span>';
+      row.appendChild(b); bars.push(b);
+    }
+    function play(i) {
+      var f = NOTES[i];
+      tone(f, 1.0, 'triangle', 0, 0.28); tone(f * 2, 0.45, 'sine', 0, 0.08); tone(f * 4, 0.12, 'sine', 0, 0.04);
+      bounce(bars[i]);
+      var r = bars[i].getBoundingClientRect(), a = area.getBoundingClientRect();
+      var n = el('div', 'burst', i % 2 ? '🎵' : '🎶');
+      n.style.fontSize = '56px';
+      place(n, r.left - a.left + 10, r.top - a.top - 60);
+      area.appendChild(n);
+      setTimeout(function () { if (n.parentNode) { n.parentNode.removeChild(n); } }, 650);
+    }
+    function hit(cx, cy) {
+      var t = document.elementFromPoint(cx, cy);
+      while (t && t !== area && !t.getAttribute('data-i')) { t = t.parentNode; }
+      if (t && t !== area && t.getAttribute) {
+        var i = parseInt(t.getAttribute('data-i'), 10);
+        if (i !== last) { last = i; play(i); }
+      }
+    }
+    area.addEventListener('touchstart', function (e) { e.preventDefault(); unlock(); last = -1; for (var k = 0; k < e.changedTouches.length; k++) { hit(e.changedTouches[k].clientX, e.changedTouches[k].clientY); } }, false);
+    area.addEventListener('touchmove', function (e) { e.preventDefault(); var t = e.changedTouches[0]; hit(t.clientX, t.clientY); }, false);
+    area.addEventListener('touchend', function () { last = -1; }, false);
+    var md = false;
+    area.addEventListener('mousedown', function (e) { md = true; unlock(); last = -1; hit(e.clientX, e.clientY); }, false);
+    area.addEventListener('mousemove', function (e) { if (md) { hit(e.clientX, e.clientY); } }, false);
+    window.addEventListener('mouseup', function () { md = false; last = -1; }, false);
+    // a little melody (Twinkle Twinkle / «Bæ, bæ, lille lam»-melodien, folketone)
+    var SONG = [0, 0, 4, 4, 5, 5, 4, -1, 3, 3, 2, 2, 1, 1, 0, -1, 4, 4, 3, 3, 2, 2, 1, -1, 4, 4, 3, 3, 2, 2, 1, -1, 0, 0, 4, 4, 5, 5, 4, -1, 3, 3, 2, 2, 1, 1, 0];
+    function stopSong() { for (var k = 0; k < timers.length; k++) { clearTimeout(timers[k]); } timers = []; }
+    var songBtn = $('xyloRight');
+    songBtn.innerHTML = '<span class="speaker" style="display:inline-block;width:76px;height:76px;line-height:76px;font-size:44px">🎶</span>';
+    onTap(songBtn, function () {
+      stopSong();
+      for (var k = 0; k < SONG.length; k++) {
+        (function (n, k2) { if (n >= 0) { timers.push(setTimeout(function () { play(n); }, k2 * 380)); } })(SONG[k], k);
+      }
+    });
+    stoppers.xylo = stopSong;
+  })();
+
+  /* ---------- Fyrverkeri ---------- */
+  (function () {
+    var body = makeScreen('fyr', 'Fyrverkeri');
+    var box = fill(el('div')); box.style.background = '#0b1033'; box.style.borderRadius = '0';
+    var cv = el('canvas'); box.appendChild(cv); body.appendChild(box);
+    var C = null, parts = [], stop = null;
+    var FCOL = ['#ff4d4d', '#ffd23d', '#3cc76b', '#3d8bff', '#ff7fc8', '#a45cff', '#ff9a2e', '#ffffff'];
+    function boom(x, y) {
+      var col = FCOL[rnd(FCOL.length)], col2 = FCOL[rnd(FCOL.length)], n = 46;
+      for (var i = 0; i < n; i++) {
+        var a = (i / n) * 6.283 + Math.random() * 0.2, sp = 120 + Math.random() * 200;
+        parts.push({ x: x, y: y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: 1.3 + Math.random() * 0.5, c: i % 3 ? col : col2, r: 3 + Math.random() * 3 });
+      }
+      tone(160, 0.45, 'sawtooth', 0, 0.18, 40);
+      for (var k = 0; k < 5; k++) { tone(1500 + Math.random() * 1500, 0.05, 'square', 0.25 + k * 0.07, 0.03); }
+    }
+    pointer(box, function (x, y, ph, e) {
+      if (ph !== 'start') { return; }
+      if (e && e.changedTouches && e.changedTouches.length > 1) {
+        for (var i = 0; i < e.changedTouches.length; i++) { var p = relTo(box, e.changedTouches[i].clientX, e.changedTouches[i].clientY); boom(p.x, p.y); }
+      } else { boom(x, y); }
+    });
+    starters.fyr = function () {
+      setTimeout(function () {
+        C = setupCanvas(cv, box);
+        C.g.fillStyle = '#0b1033'; C.g.fillRect(0, 0, C.w, C.h);
+        parts = [];
+        boom(C.w / 2, C.h / 3);
+        stop = loop(function (dt) {
+          var g = C.g;
+          g.globalCompositeOperation = 'source-over';
+          g.globalAlpha = 1;
+          g.fillStyle = 'rgba(11,16,51,0.28)'; g.fillRect(0, 0, C.w, C.h);
+          for (var i = parts.length - 1; i >= 0; i--) {
+            var p = parts[i];
+            p.life -= dt;
+            if (p.life <= 0) { parts.splice(i, 1); continue; }
+            p.vy += 160 * dt; p.vx *= 0.985; p.vy *= 0.985;
+            p.x += p.vx * dt; p.y += p.vy * dt;
+            g.globalAlpha = Math.min(1, p.life);
+            g.fillStyle = p.c;
+            g.beginPath(); g.arc(p.x, p.y, p.r, 0, 6.283); g.fill();
+          }
+          g.globalAlpha = 1;
+        });
+      }, 30);
+      say('Trykk på himmelen!');
+    };
+    stoppers.fyr = function () { if (stop) { stop(); stop = null; } };
+  })();
+
+  /* ---------- Tittei ---------- */
+  (function () {
+    var body = makeScreen('tittei', 'Tittei');
+    var grid = el('div', 'wrap');
+    body.appendChild(grid);
+    var found = 0, cells = [];
+    function start() {
+      grid.innerHTML = ''; found = 0; cells = [];
+      var pick = shuffle(ANIMALS.slice()).slice(0, 6);
+      for (var i = 0; i < pick.length; i++) {
+        (function (a) {
+          var c = el('div', 'tcell', '<span class="tan">' + a[0] + '</span><span class="tbush">🌳</span>');
+          var open = false;
+          onTap(c, function () {
+            if (open) { bounce(c); say(a[1] + ' sier ' + a[2] + '!'); return; }
+            open = true; c.classList.add('open');
+            tone(700, 0.08, 'sine', 0, 0.15); tone(1000, 0.12, 'sine', 0.08, 0.15);
+            bounce(c);
+            say(['Tittei!', a[1] + '!']);
+            found++;
+            if (found === 6) {
+              setTimeout(function () { party(); sfx.good(); say('Hurra! Du fant alle!'); }, 1400);
+              setTimeout(start, 4200);
+            }
+          });
+          grid.appendChild(c); cells.push(c);
+        })(pick[i]);
+      }
+    }
+    starters.tittei = function () { start(); say('Hvem gjemmer seg i buskene?'); };
+  })();
+
+  /* ---------- Dra-og-slipp-matching (Former, Mate dyrene) ---------- */
+  var SHAPES = [['🔴', 'Sirkel'], ['🔺', 'Trekant'], ['⭐', 'Stjerne'], ['🔷', 'Ruter'], ['🌙', 'Måne'], ['❤️', 'Hjerte'], ['☁️', 'Sky']];
+  var FOODS = [['🐶', '🍖', 'Hunden'], ['🐱', '🐟', 'Katten'], ['🐒', '🍌', 'Apen'], ['🐻', '🍯', 'Bjørnen'],
+    ['🐮', '🌾', 'Kua'], ['🐸', '🐛', 'Frosken'], ['🐴', '🍎', 'Hesten'], ['🐼', '🎋', 'Pandaen']];
+  function makeMatch(id, title, intro, n, getPairs, okSay, badSay, shadowTargets) {
+    var body = makeScreen(id, title);
+    var area = fill(el('div'));
+    body.appendChild(area);
+    var items = [], targets = [], done = 0, rounds = 0;
+    function start() {
+      area.innerHTML = ''; items = []; targets = []; done = 0;
+      var W = area.clientWidth || 1024, H = area.clientHeight || 670;
+      var pairs = getPairs(n);
+      var size = Math.min(150, Math.floor(W / (n + 0.6)));
+      var fs = Math.round(size * 0.72);
+      var gap = W / n;
+      var order = shuffle(pairs.slice());
+      for (var i = 0; i < pairs.length; i++) {
+        var t = el('div', 'mtarget', '<span class="' + (shadowTargets ? 'shadow' : '') + '">' + pairs[i].t + '</span>');
+        t.style.width = t.style.height = size + 'px'; t.style.lineHeight = size + 'px'; t.style.fontSize = fs + 'px';
+        var tx = gap * i + gap / 2 - size / 2, ty = H * 0.24 - size / 2;
+        place(t, tx, ty); area.appendChild(t);
+        targets.push({ el: t, x: tx, y: ty, key: pairs[i].key, p: pairs[i], filled: false });
+      }
+      for (var j = 0; j < order.length; j++) {
+        (function (p, j2) {
+          var d = el('div', 'mitem', p.i);
+          d.style.width = d.style.height = size + 'px'; d.style.lineHeight = size + 'px'; d.style.fontSize = fs + 'px';
+          var hx = gap * j2 + gap / 2 - size / 2, hy = H * 0.74 - size / 2;
+          var it = { el: d, hx: hx, hy: hy, x: hx, y: hy, key: p.key, p: p, done: false, ox: 0, oy: 0 };
+          place(d, hx, hy); area.appendChild(d); items.push(it);
+          draggable(d, area, {
+            start: function (x, y) { if (it.done) { return; } it.ox = x - it.x; it.oy = y - it.y; d.style.zIndex = '50'; d.classList.add('lift'); tone(500, 0.06, 'sine', 0, 0.1); },
+            move: function (x, y) { if (it.done) { return; } it.x = x - it.ox; it.y = y - it.oy; place(d, it.x, it.y); },
+            end: function () {
+              if (it.done) { return; }
+              d.classList.remove('lift'); d.style.zIndex = '';
+              var best = null, bd = 1e9;
+              for (var k = 0; k < targets.length; k++) {
+                var tg = targets[k], dx = tg.x - it.x, dy = tg.y - it.y, dd = Math.sqrt(dx * dx + dy * dy);
+                if (dd < bd) { bd = dd; best = tg; }
+              }
+              if (best && bd < size * 0.75) {
+                if (best.key === it.key && !best.filled) {
+                  it.done = true; best.filled = true;
+                  it.x = best.x; it.y = best.y; place(d, it.x, it.y);
+                  if (shadowTargets) { best.el.innerHTML = ''; d.style.zIndex = '5'; } else { d.style.display = 'none'; best.el.classList.add('fed'); }
+                  bounce(shadowTargets ? d : best.el); sfx.good();
+                  say(okSay(it.p));
+                  done++;
+                  if (done === targets.length) {
+                    rounds++;
+                    setTimeout(function () { party(); say('Hurra! Du klarte det!'); }, 1300);
+                    setTimeout(start, 4300);
+                  }
+                  return;
+                }
+                bounce(d, 'wobble'); sfx.soft(); say(badSay);
+              }
+              it.x = it.hx; it.y = it.hy; place(d, it.x, it.y);
+            }
+          });
+        })(order[j], j);
+      }
+    }
+    starters[id] = function () { rounds = 0; setTimeout(start, 30); say(intro); };
+  }
+
+  /* ---------- Skrapebilde ---------- */
+  (function () {
+    var body = makeScreen('skrape', 'Skrapebilde');
+    var area = fill(el('div'));
+    var pic = fill(el('div', 'scratchpic'));
+    var cv = el('canvas'); cv.style.position = 'absolute'; cv.style.left = '0'; cv.style.top = '0';
+    area.appendChild(pic); area.appendChild(cv); body.appendChild(area);
+    var C = null, grid = null, gw = 0, gh = 0, cleared = 0, total = 0, last = null, revealed = false, idx = rnd(100), cur = null, CELL = 24;
+    var next = againBtn(body, 'Neste ➜', function () { idx++; start(); });
+    function start() {
+      next.style.display = 'none'; revealed = false; last = null;
+      cur = PUZ[idx % PUZ.length];
+      pic.style.background = 'linear-gradient(135deg,' + cur[2] + ',' + cur[3] + ')';
+      pic.style.background = '-webkit-linear-gradient(-45deg,' + cur[2] + ',' + cur[3] + ')';
+      pic.innerHTML = '<div class="bigemoji">' + cur[0] + '</div>';
+      C = setupCanvas(cv, area);
+      cv.style.opacity = '1';
+      var g = C.g;
+      g.globalCompositeOperation = 'source-over';
+      var gr = g.createLinearGradient(0, 0, C.w, C.h);
+      gr.addColorStop(0, '#c9d2e3'); gr.addColorStop(0.5, '#e8ecf4'); gr.addColorStop(1, '#b7c1d6');
+      g.fillStyle = gr; g.fillRect(0, 0, C.w, C.h);
+      g.font = '40px sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+      for (var i = 0; i < 26; i++) { g.globalAlpha = 0.35; g.fillText(['⭐', '❓', '✨'][i % 3], Math.random() * C.w, Math.random() * C.h); }
+      g.globalAlpha = 1;
+      gw = Math.ceil(C.w / CELL); gh = Math.ceil(C.h / CELL); grid = []; cleared = 0; total = gw * gh;
+      for (var k = 0; k < total; k++) { grid.push(0); }
+    }
+    function rub(x, y) {
+      if (revealed || !C) { return; }
+      var g = C.g, R = 46;
+      g.globalCompositeOperation = 'destination-out';
+      g.lineWidth = R * 2; g.lineCap = 'round';
+      g.beginPath();
+      if (last) { g.moveTo(last.x, last.y); } else { g.moveTo(x, y); }
+      g.lineTo(x + 0.1, y + 0.1); g.stroke();
+      last = { x: x, y: y };
+      var x0 = Math.max(0, Math.floor((x - R) / CELL)), x1 = Math.min(gw - 1, Math.floor((x + R) / CELL));
+      var y0 = Math.max(0, Math.floor((y - R) / CELL)), y1 = Math.min(gh - 1, Math.floor((y + R) / CELL));
+      for (var cy = y0; cy <= y1; cy++) {
+        for (var cx = x0; cx <= x1; cx++) {
+          var k = cy * gw + cx;
+          if (!grid[k]) { grid[k] = 1; cleared++; }
+        }
+      }
+      if (rnd(6) === 0) { tone(2000 + rnd(1500), 0.03, 'square', 0, 0.02); }
+      if (cleared / total > 0.55) {
+        revealed = true;
+        cv.style.opacity = '0';
+        sfx.good(); party();
+        say(['Hurra!', cur[1] + '!']);
+        setTimeout(function () { next.style.display = 'block'; }, 1500);
+      }
+    }
+    pointer(area, function (x, y, ph) { if (ph === 'end') { last = null; return; } rub(x, y); });
+    starters.skrape = function () { setTimeout(start, 30); say('Skrap og se hva som gjemmer seg!'); };
+  })();
+
+  /* ======================================================================
+     NYE SPILL 4–6 ÅR
+     ====================================================================== */
+  var FRUITS = [['🍎', 'Eple'], ['🍌', 'Banan'], ['🍓', 'Jordbær'], ['🍐', 'Pære'], ['🍇', 'Druer'], ['🍒', 'Kirsebær'], ['🍉', 'Vannmelon'], ['🍊', 'Appelsin']];
+
+  /* ---------- Fang frukten ---------- */
+  (function () {
+    var body = makeScreen('fang', 'Fang frukten');
+    var area = fill(el('div')); area.className = 'sky';
+    var bear = el('div', 'catcher', '🐻');
+    area.appendChild(bear); body.appendChild(area);
+    var stop = null, fruits = [], score = 0, bx = 300, tx = 300, spawnT = 0, W = 0, H = 0;
+    function sc() { $('fangRight').innerHTML = '⭐ ' + score; }
+    pointer(area, function (x) { tx = x; });
+    function spawn() {
+      var f = FRUITS[rnd(FRUITS.length)];
+      var d = el('div', 'faller', f[0]);
+      var o = { el: d, x: 40 + Math.random() * (W - 80), y: -80, v: 110 + Math.min(score, 40) * 6 + Math.random() * 60, rot: 0 };
+      area.appendChild(d); fruits.push(o);
+    }
+    starters.fang = function () {
+      score = 0; sc();
+      for (var i = 0; i < fruits.length; i++) { if (fruits[i].el.parentNode) { area.removeChild(fruits[i].el); } }
+      fruits = [];
+      setTimeout(function () {
+        W = area.clientWidth; H = area.clientHeight; bx = tx = W / 2; spawnT = 0;
+        stop = loop(function (dt) {
+          bx += (tx - bx) * Math.min(1, dt * 14);
+          place(bear, bx - 60, H - 140);
+          spawnT -= dt;
+          if (spawnT <= 0) { spawn(); spawnT = Math.max(0.55, 1.3 - score * 0.02); }
+          for (var i = fruits.length - 1; i >= 0; i--) {
+            var o = fruits[i];
+            o.y += o.v * dt; o.rot += dt * 90;
+            var tr = 'translate3d(' + (o.x - 40).toFixed(1) + 'px,' + o.y.toFixed(1) + 'px,0) rotate(' + o.rot.toFixed(0) + 'deg)';
+            o.el.style.webkitTransform = tr; o.el.style.transform = tr;
+            if (o.y > H - 190 && o.y < H - 90 && Math.abs(o.x - bx) < 80) {
+              area.removeChild(o.el); fruits.splice(i, 1);
+              score++; sc(); tone(700 + (score % 8) * 80, 0.12, 'triangle', 0, 0.2);
+              burstAt(area, bx, H - 160, '✨'); bounce(bear);
+              if (score % 10 === 0) { party(); say('Hurra!'); } else if (score <= 100) { say(NUM[score]); }
+            } else if (o.y > H + 20) { area.removeChild(o.el); fruits.splice(i, 1); }
+          }
+        });
+      }, 30);
+      say('Fang frukten med bjørnen!');
+    };
+    stoppers.fang = function () { if (stop) { stop(); stop = null; } };
+  })();
+
+  /* ---------- Muldvarp (Klapp dyret) ---------- */
+  (function () {
+    var body = makeScreen('muldvarp', 'Klapp dyret');
+    var grid = el('div', 'wrap');
+    body.appendChild(grid);
+    var again = againBtn(body, 'Spill igjen', function () { start(); });
+    var holes = [], score = 0, timeLeft = 0, tick = null, pop = null, running = false;
+    var CRIT = ['🐭', '🐹', '🐰', '🐸', '🐻', '🐷'];
+    function sc() { $('muldvarpRight').innerHTML = '⏰ ' + Math.max(0, Math.ceil(timeLeft)) + '  ⭐ ' + score; }
+    for (var i = 0; i < 9; i++) {
+      (function () {
+        var h = el('div', 'mhole', '<div class="mound"></div><div class="critter"></div>');
+        var c = h.childNodes[1];
+        var o = { el: h, c: c, up: false, t: null };
+        function whack(e) {
+          if (e) { e.preventDefault(); }
+          unlock();
+          if (!o.up || !running) { return; }
+          o.up = false; h.classList.remove('up'); clearTimeout(o.t);
+          score++; sc();
+          tone(900, 0.08, 'square', 0, 0.12, 300); tone(1300, 0.1, 'sine', 0.06, 0.12);
+          burstAt(h, 85, 40, '⭐');
+        }
+        h.addEventListener('touchstart', whack, false);
+        h.addEventListener('mousedown', whack, false);
+        grid.appendChild(h); holes.push(o);
+      })();
+    }
+    function popOne() {
+      if (!running) { return; }
+      var free = [];
+      for (var i = 0; i < holes.length; i++) { if (!holes[i].up) { free.push(holes[i]); } }
+      if (free.length) {
+        var o = free[rnd(free.length)];
+        o.c.innerHTML = CRIT[rnd(CRIT.length)];
+        o.up = true; o.el.classList.add('up');
+        tone(400, 0.06, 'sine', 0, 0.08, 600);
+        var stay = Math.max(700, 1500 - score * 25);
+        o.t = setTimeout(function () { o.up = false; o.el.classList.remove('up'); }, stay);
+      }
+      pop = setTimeout(popOne, Math.max(450, 950 - score * 15));
+    }
+    function end() {
+      running = false; clearInterval(tick); clearTimeout(pop);
+      for (var i = 0; i < holes.length; i++) { holes[i].up = false; holes[i].el.classList.remove('up'); clearTimeout(holes[i].t); }
+      party(); sfx.good();
+      say(score <= 100 ? ['Tiden er ute!', 'Du fikk', NUM[score], 'stjerner!'] : ['Tiden er ute!', 'Hurra!']);
+      setTimeout(function () { again.style.display = 'block'; }, 1500);
+    }
+    function start() {
+      again.style.display = 'none';
+      score = 0; timeLeft = 40; running = true; sc();
+      clearInterval(tick); clearTimeout(pop);
+      tick = setInterval(function () { timeLeft -= 1; sc(); if (timeLeft <= 0) { end(); } }, 1000);
+      pop = setTimeout(popOne, 800);
+    }
+    starters.muldvarp = function () { start(); say('Klapp dyrene før de gjemmer seg!'); };
+    stoppers.muldvarp = function () { running = false; clearInterval(tick); clearTimeout(pop); };
+  })();
+
+  /* ---------- Labyrint ---------- */
+  (function () {
+    var body = makeScreen('labyrint', 'Labyrint');
+    var box = fill(el('div'));
+    var cv = el('canvas'); box.appendChild(cv); body.appendChild(box);
+    var C = null, rows = 3, cols = 4, cells = null, cs = 0, ox = 0, oy = 0, px = 0, py = 0, level = 0, won = false;
+    var mouse = null, goal = null;
+    function idx(r, c) { return r * cols + c; }
+    function gen() {
+      cells = [];
+      for (var i = 0; i < rows * cols; i++) { cells.push({ n: true, e: true, s: true, w: true, v: false }); }
+      var stack = [[0, 0]]; cells[0].v = true;
+      while (stack.length) {
+        var cur = stack[stack.length - 1], r = cur[0], c = cur[1], nb = [];
+        if (r > 0 && !cells[idx(r - 1, c)].v) { nb.push([r - 1, c, 'n', 's']); }
+        if (c < cols - 1 && !cells[idx(r, c + 1)].v) { nb.push([r, c + 1, 'e', 'w']); }
+        if (r < rows - 1 && !cells[idx(r + 1, c)].v) { nb.push([r + 1, c, 's', 'n']); }
+        if (c > 0 && !cells[idx(r, c - 1)].v) { nb.push([r, c - 1, 'w', 'e']); }
+        if (!nb.length) { stack.pop(); continue; }
+        var nx = nb[rnd(nb.length)];
+        cells[idx(r, c)][nx[2]] = false; cells[idx(nx[0], nx[1])][nx[3]] = false;
+        cells[idx(nx[0], nx[1])].v = true; stack.push([nx[0], nx[1]]);
+      }
+    }
+    function draw() {
+      var g = C.g;
+      g.clearRect(0, 0, C.w, C.h);
+      g.fillStyle = '#ffffff';
+      g.fillRect(ox - 8, oy - 8, cols * cs + 16, rows * cs + 16);
+      g.strokeStyle = '#7c6cff'; g.lineWidth = Math.max(5, cs * 0.09); g.lineCap = 'round';
+      g.beginPath();
+      for (var r = 0; r < rows; r++) {
+        for (var c = 0; c < cols; c++) {
+          var k = cells[idx(r, c)], x = ox + c * cs, y = oy + r * cs;
+          if (k.n) { g.moveTo(x, y); g.lineTo(x + cs, y); }
+          if (k.w) { g.moveTo(x, y); g.lineTo(x, y + cs); }
+          if (r === rows - 1 && k.s) { g.moveTo(x, y + cs); g.lineTo(x + cs, y + cs); }
+          if (c === cols - 1 && k.e) { g.moveTo(x + cs, y); g.lineTo(x + cs, y + cs); }
+        }
+      }
+      g.stroke();
+      drawSprite(g, goal, ox + (cols - 0.5) * cs, oy + (rows - 0.5) * cs);
+      drawSprite(g, mouse, ox + (px + 0.5) * cs, oy + (py + 0.5) * cs);
+    }
+    function start() {
+      won = false;
+      var sizes = [[3, 4], [4, 5], [5, 7], [6, 8], [7, 10], [8, 11]];
+      var sz = sizes[Math.min(level, sizes.length - 1)];
+      C = setupCanvas(cv, box);
+      if (C.w > C.h) { rows = sz[0]; cols = sz[1]; } else { rows = sz[1]; cols = sz[0]; }
+      cs = Math.floor(Math.min((C.w - 40) / cols, (C.h - 40) / rows));
+      ox = Math.round((C.w - cols * cs) / 2); oy = Math.round((C.h - rows * cs) / 2);
+      mouse = sprite('🐭', cs * 0.62); goal = sprite('🍓', cs * 0.62);
+      px = 0; py = 0; gen(); draw();
+      $('labyrintRight').innerHTML = '🏁 ' + (level + 1);
+    }
+    function tryMove(r, c) {
+      var cur = cells[idx(py, px)];
+      if (r === py && c === px + 1 && !cur.e) { px++; }
+      else if (r === py && c === px - 1 && !cur.w) { px--; }
+      else if (c === px && r === py + 1 && !cur.s) { py++; }
+      else if (c === px && r === py - 1 && !cur.n) { py--; }
+      else { return; }
+      tone(500 + (px + py) * 25, 0.05, 'sine', 0, 0.1);
+      draw();
+      if (px === cols - 1 && py === rows - 1 && !won) {
+        won = true; sfx.good(); party(); say('Hurra! Du klarte det!');
+        level++;
+        setTimeout(start, 3000);
+      }
+    }
+    pointer(box, function (x, y) {
+      if (won || !cells) { return; }
+      var c = Math.floor((x - ox) / cs), r = Math.floor((y - oy) / cs);
+      if (r < 0 || c < 0 || r >= rows || c >= cols) { return; }
+      // walk step by step toward the finger along straight lines
+      var guard = 0;
+      while ((r !== py || c !== px) && guard < 3) {
+        guard++;
+        var dr = r - py, dc = c - px, opx = px, opy = py;
+        if (Math.abs(dc) >= Math.abs(dr)) { tryMove(py, px + (dc > 0 ? 1 : -1)); } else { tryMove(py + (dr > 0 ? 1 : -1), px); }
+        if (opx === px && opy === py) { break; }
+      }
+    });
+    starters.labyrint = function () { level = 0; setTimeout(start, 30); say('Hjelp musa til jordbæret!'); };
+  })();
+
+  /* ---------- Skygger ---------- */
+  (function () {
+    var body = makeScreen('skygge', 'Skygger');
+    var prompt = el('div', 'prompt'); prompt.style.height = '260px';
+    var choices = el('div', 'wrap');
+    choices.style.position = 'absolute'; choices.style.top = '260px'; choices.style.left = '0'; choices.style.right = '0'; choices.style.bottom = '0'; choices.style.height = 'auto';
+    body.appendChild(prompt); body.appendChild(choices);
+    var stars = 0, locked = false, target = null, pool = [];
+    function round() {
+      locked = false;
+      var n = stars >= 6 ? 4 : 3;
+      var pick = shuffle(pool.slice()).slice(0, n);
+      target = pick[0];
+      prompt.innerHTML = '<span class="shadowS" style="font-size:210px;line-height:250px">' + target[0] + '</span>';
+      var sp = el('div', 'speaker', '🔊');
+      onTap(sp, function () { bounce(sp); say('Hvem sin skygge er dette?'); });
+      prompt.appendChild(sp);
+      choices.innerHTML = '';
+      shuffle(pick);
+      for (var i = 0; i < pick.length; i++) {
+        (function (w) {
+          var c = el('div', 'pic', w[0]);
+          onTap(c, function () {
+            if (locked) { return; }
+            if (w === target) {
+              locked = true; bounce(c); sfx.good(); stars++; $('skyggeRight').innerHTML = '⭐ ' + stars;
+              prompt.firstChild.className = ''; bounce(prompt.firstChild);
+              say([GOOD[rnd(GOOD.length)], w[1] + '!']);
+              if (stars % 5 === 0) { party(); }
+              setTimeout(function () { round(); say('Hvem sin skygge er dette?'); }, 2300);
+            } else { bounce(c, 'wobble'); sfx.soft(); say('Prøv igjen.'); }
+          });
+          choices.appendChild(c);
+        })(pick[i]);
+      }
+    }
+    starters.skygge = function () {
+      if (!pool.length) { for (var i = 0; i < CARDPOOL.length; i++) { if (CARDPOOL[i][0] !== '🚓' && CARDPOOL[i][0] !== '🚑' && CARDPOOL[i][0] !== '🚌') { pool.push(CARDPOOL[i]); } } }
+      stars = 0; $('skyggeRight').innerHTML = '⭐ 0'; round(); say('Hvem sin skygge er dette?');
+    };
+  })();
+
+  /* ---------- Hvem passer ikke? ---------- */
+  var CATS = [
+    ['frukt', ['🍎', '🍌', '🍓', '🍐', '🍇', '🍒', '🍉', '🍊']],
+    ['dyr', ['🐶', '🐱', '🐮', '🐷', '🐑', '🐸', '🐘', '🐒', '🐭', '🐻']],
+    ['kjøretøy', ['🚗', '🚒', '🚌', '🚚', '🚜', '🚂', '✈️', '🚢', '🚲', '🚀']],
+    ['klær', ['👕', '👖', '👗', '👟', '🎩', '👓', '👢', '👒']],
+    ['vær', ['🌞', '☁️', '🌈', '⛄', '☔', '⚡', '🌙', '⭐']]
+  ];
+  (function () {
+    var body = makeScreen('odd', 'Hvem passer ikke?');
+    var prompt = el('div', 'prompt');
+    var choices = el('div', 'choices wrap');
+    body.appendChild(prompt); body.appendChild(choices);
+    var stars = 0, locked = false;
+    function ask() { say('Hvilken passer ikke?'); }
+    function round() {
+      locked = false;
+      var ci = rnd(CATS.length), oi = (ci + 1 + rnd(CATS.length - 1)) % CATS.length;
+      var main = shuffle(CATS[ci][1].slice()).slice(0, 3), odd = CATS[oi][1][rnd(CATS[oi][1].length)];
+      var all = shuffle(main.concat([odd]));
+      prompt.innerHTML = '<span>Hvilken passer ikke?</span>';
+      var sp = el('div', 'speaker', '🔊');
+      onTap(sp, function () { bounce(sp); ask(); });
+      prompt.appendChild(sp);
+      choices.innerHTML = '';
+      for (var i = 0; i < all.length; i++) {
+        (function (w) {
+          var c = el('div', 'pic', w);
+          c.style.width = c.style.height = '180px'; c.style.lineHeight = '180px'; c.style.fontSize = '120px'; c.style.margin = '14px';
+          onTap(c, function () {
+            if (locked) { return; }
+            if (w === odd) {
+              locked = true; bounce(c); sfx.good(); stars++; $('oddRight').innerHTML = '⭐ ' + stars;
+              c.style.background = '#d9f7e3';
+              say([GOOD[rnd(GOOD.length)], 'Den passer ikke!']);
+              if (stars % 5 === 0) { party(); }
+              setTimeout(function () { round(); ask(); }, 2300);
+            } else { bounce(c, 'wobble'); sfx.soft(); say('Prøv igjen.'); }
+          });
+          choices.appendChild(c);
+        })(all[i]);
+      }
+    }
+    starters.odd = function () { stars = 0; $('oddRight').innerHTML = '⭐ 0'; round(); ask(); };
+  })();
+
+  /* ---------- Mønster ---------- */
+  (function () {
+    var body = makeScreen('monster', 'Mønster');
+    var row = el('div', 'wrap'); row.style.height = '300px';
+    var choices = el('div', 'wrap');
+    choices.style.position = 'absolute'; choices.style.top = '300px'; choices.style.left = '0'; choices.style.right = '0'; choices.style.bottom = '0'; choices.style.height = 'auto';
+    body.appendChild(row); body.appendChild(choices);
+    var stars = 0, locked = false;
+    var TYPES = ['AB', 'AAB', 'ABB', 'ABC', 'AABB', 'ABCB'];
+    function ask() { say('Hva kommer etter?'); }
+    function round() {
+      locked = false;
+      var types = stars < 4 ? ['AB'] : (stars < 8 ? ['AB', 'AAB', 'ABB', 'ABC'] : TYPES);
+      var t = types[rnd(types.length)];
+      var cat = CATS[rnd(CATS.length)][1];
+      var syms = shuffle(cat.slice()).slice(0, 4);
+      var map = { A: syms[0], B: syms[1], C: syms[2] };
+      var seq = [], len = Math.max(6, t.length * 2 + 1);
+      for (var i = 0; i < len + 1; i++) { seq.push(map[t.charAt(i % t.length)]); }
+      var answer = seq.pop();
+      row.innerHTML = '';
+      for (var j = 0; j < seq.length; j++) { var s = el('div', 'mslot', seq[j]); row.appendChild(s); }
+      var q = el('div', 'mslot q', '?'); row.appendChild(q);
+      var opts = [answer];
+      for (var k = 0; k < syms.length && opts.length < 3; k++) { if (opts.indexOf(syms[k]) === -1) { opts.push(syms[k]); } }
+      shuffle(opts);
+      choices.innerHTML = '';
+      for (var m = 0; m < opts.length; m++) {
+        (function (w) {
+          var c = el('div', 'pic', w);
+          onTap(c, function () {
+            if (locked) { return; }
+            if (w === answer) {
+              locked = true; bounce(c); sfx.good(); stars++; $('monsterRight').innerHTML = '⭐ ' + stars;
+              q.innerHTML = w; q.className = 'mslot ok'; bounce(q);
+              say(GOOD[rnd(GOOD.length)]);
+              if (stars % 5 === 0) { party(); }
+              setTimeout(function () { round(); ask(); }, 2000);
+            } else { bounce(c, 'wobble'); sfx.soft(); say('Prøv igjen.'); }
+          });
+          choices.appendChild(c);
+        })(opts[m]);
+      }
+    }
+    starters.monster = function () { stars = 0; $('monsterRight').innerHTML = '⭐ 0'; round(); ask(); };
+  })();
+
+  /* ======================================================================
+     NYE SPILL 7–8 ÅR
+     ====================================================================== */
+
+  /* ---------- Romskip ---------- */
+  (function () {
+    var body = makeScreen('romskip', 'Romskip');
+    var box = fill(el('div')); box.style.background = '#070b24';
+    var cv = el('canvas'); box.appendChild(cv); body.appendChild(box);
+    var again = againBtn(body, 'Spill igjen', function () { start(); });
+    var C = null, stop = null, ship = null, rock = null, alien = null, boomS = null, starsBg = [], shots = [], foes = [], fx = [];
+    var sx = 0, tx = 0, fireT = 0, spawnT = 0, score = 0, lives = 3, alive = false, hitT = 0;
+    function sc() { $('romskipRight').innerHTML = hearts(); }
+    function hearts() { var s = ''; for (var i = 0; i < lives; i++) { s += '❤️'; } return s + '  ⭐ ' + score; }
+    pointer(box, function (x) { tx = x; });
+    function start() {
+      again.style.display = 'none';
+      C = setupCanvas(cv, box);
+      ship = sprite('🚀', 70); rock = sprite('🌑', 56); alien = sprite('👾', 56); boomS = sprite('💥', 70);
+      starsBg = [];
+      for (var i = 0; i < 60; i++) { starsBg.push({ x: Math.random() * C.w, y: Math.random() * C.h, v: 20 + Math.random() * 80, r: Math.random() * 1.8 + 0.5 }); }
+      shots = []; foes = []; fx = []; score = 0; lives = 3; alive = true; sx = tx = C.w / 2; fireT = 0; spawnT = 1; hitT = 0;
+      sc();
+      if (stop) { stop(); }
+      stop = loop(function (dt) {
+        var g = C.g, W = C.w, H = C.h, i, j;
+        g.fillStyle = '#070b24'; g.fillRect(0, 0, W, H);
+        g.fillStyle = '#ffffff';
+        for (i = 0; i < starsBg.length; i++) {
+          var st = starsBg[i]; st.y += st.v * dt; if (st.y > H) { st.y = 0; st.x = Math.random() * W; }
+          g.fillRect(st.x, st.y, st.r, st.r);
+        }
+        if (alive) {
+          sx += (tx - sx) * Math.min(1, dt * 12);
+          fireT -= dt;
+          if (fireT <= 0) { shots.push({ x: sx, y: H - 110 }); fireT = 0.3; tone(1200, 0.05, 'square', 0, 0.03, 600); }
+          spawnT -= dt;
+          if (spawnT <= 0) {
+            var isA = rnd(3) === 0;
+            foes.push({ x: 40 + Math.random() * (W - 80), y: -40, v: 70 + Math.min(score, 60) * 3 + Math.random() * 50, a: isA, hp: isA ? 2 : 1, wob: Math.random() * 6 });
+            spawnT = Math.max(0.45, 1.4 - score * 0.02);
+          }
+        }
+        g.fillStyle = '#7dfcff';
+        for (i = shots.length - 1; i >= 0; i--) {
+          var s = shots[i]; s.y -= 520 * dt;
+          if (s.y < -20) { shots.splice(i, 1); continue; }
+          g.fillRect(s.x - 3, s.y - 14, 6, 18);
+        }
+        for (i = foes.length - 1; i >= 0; i--) {
+          var f = foes[i]; f.y += f.v * dt; f.wob += dt * 3;
+          var fxp = f.x + (f.a ? Math.sin(f.wob) * 30 : 0);
+          var hit = false;
+          for (j = shots.length - 1; j >= 0; j--) {
+            if (Math.abs(shots[j].x - fxp) < 34 && Math.abs(shots[j].y - f.y) < 34) { shots.splice(j, 1); f.hp--; hit = true; break; }
+          }
+          if (hit && f.hp <= 0) {
+            fx.push({ x: fxp, y: f.y, t: 0.35 }); foes.splice(i, 1); score++; sc();
+            tone(200, 0.25, 'sawtooth', 0, 0.12, 60);
+            if (score % 10 === 0) { party(); say('Hurra!'); }
+            continue;
+          }
+          if (alive && f.y > H - 140 && f.y < H - 40 && Math.abs(fxp - sx) < 50 && hitT <= 0) {
+            foes.splice(i, 1); lives--; hitT = 1.2; sc(); fx.push({ x: sx, y: H - 90, t: 0.5 });
+            tone(120, 0.5, 'sawtooth', 0, 0.2, 40);
+            if (lives <= 0) {
+              alive = false; sfx.soft();
+              say(score <= 100 ? ['Ferdig!', 'Du fikk', NUM[score], 'poeng!'] : ['Ferdig!', 'Hurra!']);
+              setTimeout(function () { again.style.display = 'block'; }, 1500);
+            }
+            continue;
+          }
+          if (f.y > H + 40) { foes.splice(i, 1); continue; }
+          drawSprite(g, f.a ? alien : rock, fxp, f.y);
+        }
+        for (i = fx.length - 1; i >= 0; i--) { fx[i].t -= dt; if (fx[i].t <= 0) { fx.splice(i, 1); continue; } drawSprite(g, boomS, fx[i].x, fx[i].y); }
+        if (alive) {
+          hitT -= dt;
+          if (hitT <= 0 || Math.floor(hitT * 10) % 2 === 0) {
+            g.save(); g.translate(sx, H - 90); g.rotate(-Math.PI / 4); drawSprite(g, ship, 0, 0); g.restore();
+          }
+        }
+      });
+    }
+    starters.romskip = function () { setTimeout(start, 30); say('Styr romskipet og skyt steinene!'); };
+    stoppers.romskip = function () { if (stop) { stop(); stop = null; } };
+  })();
+
+  /* ---------- Slange ---------- */
+  (function () {
+    var body = makeScreen('slange', 'Slange');
+    var box = fill(el('div'));
+    var cv = el('canvas'); box.appendChild(cv); body.appendChild(box);
+    var pad = el('div', 'dpad', '<div data-d="u">⬆️</div><div data-d="l">⬅️</div><div data-d="r">➡️</div><div data-d="d">⬇️</div>');
+    body.appendChild(pad);
+    var again = againBtn(body, 'Spill igjen', function () { start(); });
+    var C = null, cols = 16, rows = 11, cs = 40, ox = 0, oy = 0, snake = [], dir = [1, 0], nextDir = [1, 0], food = null, apple = null, timer = null, score = 0, alive = false;
+    var DIRS = { u: [0, -1], d: [0, 1], l: [-1, 0], r: [1, 0] };
+    function setDir(d) { if (d[0] === -dir[0] && d[1] === -dir[1]) { return; } nextDir = d; }
+    var kids = pad.childNodes;
+    for (var i = 0; i < kids.length; i++) {
+      (function (k) { k.addEventListener('touchstart', function (e) { e.preventDefault(); unlock(); setDir(DIRS[k.getAttribute('data-d')]); bounce(k); }, false); k.addEventListener('mousedown', function () { setDir(DIRS[k.getAttribute('data-d')]); }, false); })(kids[i]);
+    }
+    var sw = null;
+    pointer(box, function (x, y, ph) {
+      if (ph === 'start') { sw = { x: x, y: y }; return; }
+      if (!sw) { return; }
+      var dx = x - sw.x, dy = y - sw.y;
+      if (Math.abs(dx) > 30 || Math.abs(dy) > 30) {
+        if (Math.abs(dx) > Math.abs(dy)) { setDir(dx > 0 ? DIRS.r : DIRS.l); } else { setDir(dy > 0 ? DIRS.d : DIRS.u); }
+        sw = { x: x, y: y };
+      }
+      if (ph === 'end') { sw = null; }
+    });
+    function placeFood() {
+      var ok = false, f;
+      while (!ok) {
+        f = [rnd(cols), rnd(rows)]; ok = true;
+        for (var i = 0; i < snake.length; i++) { if (snake[i][0] === f[0] && snake[i][1] === f[1]) { ok = false; break; } }
+      }
+      food = f;
+    }
+    function draw() {
+      var g = C.g;
+      g.clearRect(0, 0, C.w, C.h);
+      g.fillStyle = '#d4f0b0'; g.fillRect(ox, oy, cols * cs, rows * cs);
+      g.fillStyle = '#c4e89c';
+      for (var r = 0; r < rows; r++) { for (var c = 0; c < cols; c++) { if ((r + c) % 2) { g.fillRect(ox + c * cs, oy + r * cs, cs, cs); } } }
+      drawSprite(g, apple, ox + (food[0] + 0.5) * cs, oy + (food[1] + 0.5) * cs);
+      for (var i = snake.length - 1; i >= 0; i--) {
+        g.fillStyle = i === 0 ? '#1e8f4e' : (i % 2 ? '#3cc76b' : '#34b35f');
+        var p = snake[i], m = i === 0 ? 1 : 3;
+        g.fillRect(ox + p[0] * cs + m, oy + p[1] * cs + m, cs - m * 2, cs - m * 2);
+      }
+      var h = snake[0];
+      g.fillStyle = '#fff';
+      g.beginPath(); g.arc(ox + (h[0] + 0.35) * cs, oy + (h[1] + 0.35) * cs, cs * 0.12, 0, 6.3); g.arc(ox + (h[0] + 0.65) * cs, oy + (h[1] + 0.35) * cs, cs * 0.12, 0, 6.3); g.fill();
+    }
+    function step() {
+      if (!alive) { return; }
+      dir = nextDir;
+      var h = snake[0], n = [(h[0] + dir[0] + cols) % cols, (h[1] + dir[1] + rows) % rows];
+      for (var i = 0; i < snake.length - 1; i++) {
+        if (snake[i][0] === n[0] && snake[i][1] === n[1]) {
+          alive = false; sfx.soft();
+          say(score <= 100 ? ['Ferdig!', 'Du fikk', NUM[score], 'poeng!'] : ['Ferdig!', 'Hurra!']);
+          setTimeout(function () { again.style.display = 'block'; }, 1200);
+          return;
+        }
+      }
+      snake.unshift(n);
+      if (n[0] === food[0] && n[1] === food[1]) {
+        score++; $('slangeRight').innerHTML = '🍎 ' + score;
+        tone(600 + score * 20, 0.1, 'triangle', 0, 0.2);
+        if (score % 10 === 0) { party(); say('Hurra!'); }
+        placeFood();
+      } else { snake.pop(); }
+      draw();
+      timer = setTimeout(step, Math.max(110, 260 - score * 6));
+    }
+    function start() {
+      again.style.display = 'none'; clearTimeout(timer);
+      C = setupCanvas(cv, box);
+      var land = C.w > C.h;
+      cols = land ? 16 : 11; rows = land ? 11 : 14;
+      var availH = land ? C.h - 20 : C.h - 230;
+      var availW = land ? C.w - 250 : C.w - 20;
+      cs = Math.floor(Math.min(availW / cols, availH / rows));
+      ox = land ? 10 : Math.round((C.w - cols * cs) / 2); oy = land ? Math.round((C.h - rows * cs) / 2) : 10;
+      apple = sprite('🍎', cs * 0.8);
+      snake = [[4, 5], [3, 5], [2, 5]]; dir = [1, 0]; nextDir = [1, 0]; score = 0; alive = true;
+      $('slangeRight').innerHTML = '🍎 0';
+      placeFood(); draw();
+      timer = setTimeout(step, 600);
+    }
+    starters.slange = function () { setTimeout(start, 30); say('Styr slangen til eplene!'); };
+    stoppers.slange = function () { alive = false; clearTimeout(timer); };
+  })();
+
+  /* ---------- Skyvepuslespill ---------- */
+  (function () {
+    var body = makeScreen('skyv', 'Skyvepuslespill');
+    var area = fill(el('div'));
+    body.appendChild(area);
+    var next = againBtn(body, 'Neste ➜', function () { idx++; start(); });
+    var N = 3, tiles = [], empty = 0, ps = 0, bx = 0, by = 0, moves = 0, solvedCount = 0, idx = rnd(100), busy = false, cur = null, img = '';
+    function pos(t) { var r = Math.floor(t.at / N), c = t.at % N; place(t.el, bx + c * ps, by + r * ps); }
+    function isSolved() { for (var i = 0; i < tiles.length; i++) { if (tiles[i].at !== tiles[i].home) { return false; } } return true; }
+    function neighbors(e) {
+      var r = Math.floor(e / N), c = e % N, out = [];
+      if (r > 0) { out.push(e - N); } if (r < N - 1) { out.push(e + N); } if (c > 0) { out.push(e - 1); } if (c < N - 1) { out.push(e + 1); }
+      return out;
+    }
+    function tileAt(a) { for (var i = 0; i < tiles.length; i++) { if (tiles[i].at === a) { return tiles[i]; } } return null; }
+    function start() {
+      next.style.display = 'none'; area.innerHTML = ''; tiles = []; moves = 0; busy = false;
+      N = solvedCount >= 3 ? 4 : 3;
+      cur = PUZ[idx % PUZ.length]; img = renderPic(cur);
+      var W = area.clientWidth || 1024, H = area.clientHeight || 670, land = W > H;
+      var bs = Math.floor(land ? Math.min(H - 30, W - 300) : Math.min(W - 40, H - 260));
+      ps = Math.floor(bs / N); bs = ps * N;
+      bx = land ? 30 : Math.round((W - bs) / 2); by = land ? Math.round((H - bs) / 2) : 15;
+      var frame = el('div'); frame.style.cssText = 'position:absolute;background:#5b4bd6;border-radius:16px';
+      place(frame, bx - 8, by - 8); frame.style.width = (bs + 16) + 'px'; frame.style.height = (bs + 16) + 'px';
+      area.appendChild(frame);
+      var prev = el('div'); prev.style.cssText = 'position:absolute;width:200px;height:200px;border-radius:20px;background-size:100% 100%;box-shadow:0 6px 0 rgba(0,0,0,.12)';
+      prev.style.backgroundImage = 'url(' + img + ')';
+      if (land) { place(prev, bx + bs + 40, by); } else { place(prev, (W - 200) / 2, by + bs + 30); }
+      area.appendChild(prev);
+      for (var k = 0; k < N * N - 1; k++) {
+        (function (k2) {
+          var d = el('div', 'stile');
+          d.style.width = (ps - 4) + 'px'; d.style.height = (ps - 4) + 'px';
+          d.style.backgroundImage = 'url(' + img + ')';
+          d.style.backgroundSize = bs + 'px ' + bs + 'px';
+          d.style.backgroundPosition = (-(k2 % N) * ps) + 'px ' + (-Math.floor(k2 / N) * ps) + 'px';
+          var t = { el: d, home: k2, at: k2 };
+          tiles.push(t); area.appendChild(d);
+          onTap(d, function () {
+            if (busy) { return; }
+            var nb = neighbors(empty);
+            if (nb.indexOf(t.at) === -1) { bounce(d, 'wobble'); tone(200, 0.08, 'sine', 0, 0.08); return; }
+            var old = t.at; t.at = empty; empty = old; pos(t); moves++;
+            $('skyvRight').innerHTML = '👆 ' + moves;
+            tone(450 + rnd(200), 0.06, 'triangle', 0, 0.12);
+            if (isSolved()) {
+              busy = true; solvedCount++;
+              var last = el('div', 'stile');
+              last.style.width = (ps - 4) + 'px'; last.style.height = (ps - 4) + 'px';
+              last.style.backgroundImage = 'url(' + img + ')'; last.style.backgroundSize = bs + 'px ' + bs + 'px';
+              last.style.backgroundPosition = (-(N - 1) * ps) + 'px ' + (-(N - 1) * ps) + 'px';
+              place(last, bx + (N - 1) * ps, by + (N - 1) * ps); area.appendChild(last); bounce(last);
+              sfx.good(); party(); say(['Hurra! Du klarte det!', cur[1] + '!']);
+              setTimeout(function () { next.style.display = 'block'; }, 1500);
+            }
+          });
+        })(k);
+      }
+      empty = N * N - 1;
+      var prevE = -1;
+      for (var s = 0; s < (N === 3 ? 80 : 160); s++) {
+        var nb = neighbors(empty), pick = nb[rnd(nb.length)];
+        if (pick === prevE) { pick = nb[(nb.indexOf(pick) + 1) % nb.length]; }
+        var t2 = tileAt(pick); t2.at = empty; prevE = empty; empty = pick;
+      }
+      if (isSolved()) { var nb2 = neighbors(empty), t3 = tileAt(nb2[0]); t3.at = empty; empty = nb2[0]; }
+      for (var q = 0; q < tiles.length; q++) { pos(tiles[q]); }
+      $('skyvRight').innerHTML = '👆 0';
+    }
+    starters.skyv = function () { setTimeout(start, 30); say('Skyv bitene på plass!'); };
+  })();
+
+  /* ---------- Sudoku 4x4 ---------- */
+  (function () {
+    var body = makeScreen('sudoku', 'Sudoku');
+    var area = fill(el('div'));
+    body.appendChild(area);
+    var SETS = [['🍎', '🍌', '🍇', '🍓'], ['🐶', '🐱', '🐷', '🐸'], ['🚗', '🚂', '✈️', '🚢'], ['🌞', '🌙', '⭐', '☁️']];
+    var sol = null, given = null, cellsEl = [], sel = -1, sym = null, left = 0, solved = 0, locked = false;
+    function gen() {
+      var base = [[0, 1, 2, 3], [2, 3, 0, 1], [1, 0, 3, 2], [3, 2, 1, 0]];
+      var perm = shuffle([0, 1, 2, 3]);
+      var rowOrder = [], bands = shuffle([0, 1]);
+      for (var b = 0; b < 2; b++) { var inner = shuffle([0, 1]); rowOrder.push(bands[b] * 2 + inner[0], bands[b] * 2 + inner[1]); }
+      var colOrder = [], stacks = shuffle([0, 1]);
+      for (var s = 0; s < 2; s++) { var in2 = shuffle([0, 1]); colOrder.push(stacks[s] * 2 + in2[0], stacks[s] * 2 + in2[1]); }
+      var tr = rnd(2) === 0, g = [];
+      for (var r = 0; r < 4; r++) {
+        for (var c = 0; c < 4; c++) {
+          var rr = rowOrder[r], cc = colOrder[c];
+          g.push(perm[tr ? base[cc][rr] : base[rr][cc]]);
+        }
+      }
+      return g;
+    }
+    function start() {
+      locked = false; area.innerHTML = ''; cellsEl = []; sel = -1;
+      sym = SETS[rnd(SETS.length)];
+      sol = gen();
+      var holes = Math.min(11, 5 + solved);
+      var idxs = shuffle([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]).slice(0, holes);
+      given = []; for (var i = 0; i < 16; i++) { given.push(idxs.indexOf(i) === -1); }
+      left = holes;
+      var W = area.clientWidth || 1024, H = area.clientHeight || 670, land = W > H;
+      var gs = Math.floor(land ? Math.min(H - 40, W - 260) : Math.min(W - 60, H - 240));
+      var cs = Math.floor(gs / 4); gs = cs * 4;
+      var gx = land ? Math.round((W - gs - 200) / 2) : Math.round((W - gs) / 2), gy = land ? Math.round((H - gs) / 2) : 15;
+      var frame = el('div'); frame.style.cssText = 'position:absolute;background:#3b3b4f;border-radius:18px';
+      place(frame, gx - 8, gy - 8); frame.style.width = (gs + 16) + 'px'; frame.style.height = (gs + 16) + 'px';
+      area.appendChild(frame);
+      for (var k = 0; k < 16; k++) {
+        (function (k2) {
+          var r = Math.floor(k2 / 4), c = k2 % 4;
+          var d = el('div', 'scell' + (given[k2] ? ' given' : ''), given[k2] ? sym[sol[k2]] : '');
+          var gapX = c >= 2 ? 6 : 0, gapY = r >= 2 ? 6 : 0;
+          d.style.width = (cs - 8) + 'px'; d.style.height = (cs - 8) + 'px'; d.style.lineHeight = (cs - 8) + 'px'; d.style.fontSize = Math.round(cs * 0.55) + 'px';
+          place(d, gx + c * cs + 1 + gapX - 3, gy + r * cs + 1 + gapY - 3);
+          onTap(d, function () {
+            if (given[k2] || locked || d.getAttribute('data-ok')) { return; }
+            if (sel >= 0) { cellsEl[sel].classList.remove('sel'); }
+            sel = k2; d.classList.add('sel'); sfx.tap();
+          });
+          area.appendChild(d); cellsEl.push(d);
+        })(k);
+      }
+      var palette = el('div', 'spal');
+      if (land) { place(palette, gx + gs + 50, gy); palette.style.width = '150px'; }
+      else { place(palette, (W - 4 * 150) / 2, gy + gs + 30); palette.style.width = '600px'; }
+      for (var p = 0; p < 4; p++) {
+        (function (p2) {
+          var b = el('div', 'pic', sym[p2]);
+          b.style.width = b.style.height = '130px'; b.style.lineHeight = '130px'; b.style.fontSize = '84px'; b.style.margin = '10px';
+          b.style.display = 'inline-block';
+          onTap(b, function () {
+            if (locked) { return; }
+            if (sel < 0) { for (var q = 0; q < 16; q++) { if (!given[q] && !cellsEl[q].getAttribute('data-ok')) { sel = q; cellsEl[q].classList.add('sel'); break; } } }
+            if (sel < 0) { return; }
+            if (sol[sel] === p2) {
+              var d = cellsEl[sel];
+              d.innerHTML = sym[p2]; d.setAttribute('data-ok', '1'); d.classList.remove('sel'); d.classList.add('ok'); bounce(d);
+              tone(700 + left * 30, 0.12, 'triangle', 0, 0.2);
+              sel = -1; left--;
+              if (left === 0) {
+                locked = true; solved++; sfx.good(); party(); say('Hurra! Du klarte det!');
+                $('sudokuRight').innerHTML = '⭐ ' + solved;
+                setTimeout(start, 3500);
+              }
+            } else { bounce(b, 'wobble'); bounce(cellsEl[sel], 'wobble'); sfx.soft(); say('Prøv igjen.'); }
+          });
+          palette.appendChild(b);
+        })(p);
+      }
+      area.appendChild(palette);
+    }
+    starters.sudoku = function () { $('sudokuRight').innerHTML = solved ? '⭐ ' + solved : ''; setTimeout(start, 30); say('Bare én av hver i hver rad, kolonne og boks!'); };
+  })();
+
+  /* ---------- Klokka ---------- */
+  var HOURW = ['tolv', 'ett', 'to', 'tre', 'fire', 'fem', 'seks', 'sju', 'åtte', 'ni', 'ti', 'elleve', 'tolv'];
+  function clockLabel(h, m) {
+    var nh = h % 12 + 1;
+    if (m === 0) { return 'klokka ' + HOURW[h]; }
+    if (m === 30) { return 'halv ' + HOURW[nh]; }
+    if (m === 15) { return 'kvart over ' + HOURW[h]; }
+    return 'kvart på ' + HOURW[nh];
+  }
+  (function () {
+    var body = makeScreen('klokka', 'Klokka');
+    var area = fill(el('div'));
+    var cv = el('canvas'); cv.style.position = 'absolute';
+    var choices = el('div', 'clockch');
+    area.appendChild(cv); area.appendChild(choices); body.appendChild(area);
+    var stars = 0, locked = false, h = 3, m = 0;
+    function drawClock(g, S) {
+      var c = S / 2, R = S / 2 - 10;
+      g.clearRect(0, 0, S, S);
+      g.fillStyle = '#fff'; g.strokeStyle = '#ff6b6b'; g.lineWidth = 14;
+      g.beginPath(); g.arc(c, c, R - 7, 0, 6.3); g.fill(); g.stroke();
+      g.fillStyle = '#3b3b4f'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.font = 'bold ' + Math.round(S * 0.09) + 'px sans-serif';
+      for (var i = 1; i <= 12; i++) { var a = i / 12 * 6.283 - 1.5708; g.fillText(String(i), c + Math.cos(a) * R * 0.78, c + Math.sin(a) * R * 0.78); }
+      for (var t = 0; t < 60; t++) { var a2 = t / 60 * 6.283; var r1 = R - 20, r2 = t % 5 ? R - 26 : R - 34; g.lineWidth = t % 5 ? 2 : 4; g.strokeStyle = '#999'; g.beginPath(); g.moveTo(c + Math.cos(a2) * r1, c + Math.sin(a2) * r1); g.lineTo(c + Math.cos(a2) * r2, c + Math.sin(a2) * r2); g.stroke(); }
+      var ha = ((h % 12) + m / 60) / 12 * 6.283 - 1.5708, ma = m / 60 * 6.283 - 1.5708;
+      g.lineCap = 'round';
+      g.strokeStyle = '#3b3b4f'; g.lineWidth = 14; g.beginPath(); g.moveTo(c, c); g.lineTo(c + Math.cos(ha) * R * 0.48, c + Math.sin(ha) * R * 0.48); g.stroke();
+      g.strokeStyle = '#3d8bff'; g.lineWidth = 9; g.beginPath(); g.moveTo(c, c); g.lineTo(c + Math.cos(ma) * R * 0.72, c + Math.sin(ma) * R * 0.72); g.stroke();
+      g.fillStyle = '#ff6b6b'; g.beginPath(); g.arc(c, c, 12, 0, 6.3); g.fill();
+    }
+    function digital(hh, mm) { return hh + ':' + (mm < 10 ? '0' : '') + mm; }
+    function ask() { say('Hva er klokka?'); }
+    function round() {
+      locked = false;
+      var mins = stars < 5 ? [0] : (stars < 10 ? [0, 30] : [0, 30, 15, 45]);
+      h = 1 + rnd(12); m = mins[rnd(mins.length)];
+      var W = area.clientWidth || 1024, H = area.clientHeight || 670, land = W > H;
+      var S = Math.floor(land ? Math.min(H - 40, W * 0.5) : Math.min(W - 80, H * 0.5));
+      cv.width = Math.round(S * DPR); cv.height = Math.round(S * DPR); cv.style.width = S + 'px'; cv.style.height = S + 'px';
+      var g = cv.getContext('2d'); g.setTransform(DPR, 0, 0, DPR, 0, 0);
+      if (land) { place(cv, 40, (H - S) / 2); place(choices, 80 + S, 0); choices.style.width = (W - S - 120) + 'px'; choices.style.height = H + 'px'; }
+      else { place(cv, (W - S) / 2, 20); place(choices, 0, S + 40); choices.style.width = W + 'px'; choices.style.height = (H - S - 40) + 'px'; }
+      drawClock(g, S);
+      var opts = [[h, m]];
+      while (opts.length < 3) {
+        var oh = 1 + rnd(12), om = mins[rnd(mins.length)], dup = false;
+        if (rnd(2) === 0) { oh = (h + (rnd(2) ? 1 : 11) - 1) % 12 + 1; }
+        for (var i = 0; i < opts.length; i++) { if (opts[i][0] === oh && opts[i][1] === om) { dup = true; } }
+        if (!dup) { opts.push([oh, om]); }
+      }
+      shuffle(opts);
+      choices.innerHTML = '';
+      for (var k = 0; k < opts.length; k++) {
+        (function (o, k2) {
+          var lab = clockLabel(o[0], o[1]);
+          var b = el('div', 'clockbtn', '<div>' + lab.charAt(0).toUpperCase() + lab.slice(1) + '</div><small>' + digital(o[0], o[1]) + '</small>');
+          b.style.background = PALETTE[(k2 * 3 + 1) % PALETTE.length];
+          onTap(b, function () {
+            if (locked) { return; }
+            if (o[0] === h && o[1] === m) {
+              locked = true; bounce(b); sfx.good(); stars++; $('klokkaRight').innerHTML = '⭐ ' + stars;
+              say([GOOD[rnd(GOOD.length)], 'Klokka er ' + clockLabel(h, m).replace('klokka ', '')]);
+              if (stars % 5 === 0) { party(); }
+              setTimeout(function () { round(); ask(); }, 2600);
+            } else { bounce(b, 'wobble'); sfx.soft(); say('Prøv igjen.'); }
+          });
+          choices.appendChild(b);
+        })(opts[k], k);
+      }
+    }
+    starters.klokka = function () { stars = 0; $('klokkaRight').innerHTML = '⭐ 0'; setTimeout(function () { round(); ask(); }, 30); };
+  })();
+
+  /* ---------- build games ---------- */
+  (function () {
+    var BG = [['#ffb199', '#ff5e62'], ['#8ec5ff', '#3d6bff'], ['#8be3a8', '#22a35a'], ['#ffd56b', '#ff8c1a'], ['#c4a8ff', '#7c4dff'], ['#ff9ccb', '#e8457f']];
+    var i, all = [];
+    for (i = 0; i < ANIMALS.length; i++) { all.push([ANIMALS[i][0], ANIMALS[i][1]]); }
+    for (i = 0; i < VEHICLES.length; i++) { all.push([VEHICLES[i][0], VEHICLES[i][1]]); }
+    var extra = [['🌈', 'Regnbue'], ['🏠', 'Huset'], ['🌞', 'Sola'], ['🍓', 'Jordbær'], ['🐧', 'Pingvinen'], ['🐢', 'Skilpadden'], ['⛄', 'Snømannen'], ['🌸', 'Blomsten']];
+    for (i = 0; i < extra.length; i++) { all.push(extra[i]); }
+    for (i = 0; i < all.length; i++) { var bg = BG[i % BG.length]; PUZ.push([all[i][0], all[i][1], bg[0], bg[1]]); }
+    shuffle(PUZ);
+    for (i = 0; i < ANIMALS.length; i++) { CARDPOOL.push([ANIMALS[i][0], ANIMALS[i][1]]); }
+    for (i = 0; i < VEHICLES.length; i++) { CARDPOOL.push([VEHICLES[i][0], VEHICLES[i][1]]); }
+  })();
+  makeLes('les', WORDS, 3);
+  makeLes('les2', LONGWORDS, 4);
+  makeMath('pluss', 'Pluss', 5, 10, ['+'], true, 3);
+  makeMath('matte', 'Matte', 10, 20, ['+', '-'], false, 4);
+  makeMath('gange', 'Gangetabell', 10, 100, ['x'], false, 4);
+  makeMatch('former', 'Former', 'Dra formen til riktig skygge!', 3,
+    function (n) { var o = [], p = shuffle(SHAPES.slice()).slice(0, n); for (var i = 0; i < p.length; i++) { o.push({ key: p[i][0], t: p[i][0], i: p[i][0], name: p[i][1] }); } return o; },
+    function (p) { return p.name + '!'; }, 'Prøv igjen.', true);
+  makeMatch('former2', 'Former', 'Dra formen til riktig skygge!', 5,
+    function (n) { var o = [], p = shuffle(SHAPES.slice()).slice(0, n); for (var i = 0; i < p.length; i++) { o.push({ key: p[i][0], t: p[i][0], i: p[i][0], name: p[i][1] }); } return o; },
+    function (p) { return p.name + '!'; }, 'Prøv igjen.', true);
+  makeMatch('mate', 'Mate dyrene', 'Gi dyrene mat!', 3,
+    function (n) { var o = [], p = shuffle(FOODS.slice()).slice(0, n); for (var i = 0; i < p.length; i++) { o.push({ key: p[i][0], t: p[i][0], i: p[i][1], name: p[i][2] }); } return o; },
+    function (p) { return ['Nam nam!', p.name + '!']; }, 'Nei takk!', false);
+  makeHuske('huske', 6, 4);
+  makeHuske('huske2', 10, 5);
+  makePuzzle('pus2', 2, true);
+  makePuzzle('pus3', 3, true);
+  makePuzzle('pus4', 4, false);
+  makePuzzle('pus5', 5, false);
+
+  /* ---------- every phrase the games can say (used to make voice clips) ---------- */
+  window.__phrases = function () {
+    var out = [], seen = {};
+    function add(t) { if (t && !seen[t]) { seen[t] = 1; out.push(t); } }
+    var i, k;
+    for (k in INFO) { if (INFO.hasOwnProperty(k)) { add(INFO[k][1]); } }
+    for (i = 0; i < GROUPS.length; i++) { add(GROUPS[i].t); }
+    for (i = 0; i < ANIMALS.length; i++) { add(ANIMALS[i][1] + ' sier ' + ANIMALS[i][2] + '!'); }
+    for (i = 0; i < VEHICLES.length; i++) { add(VEHICLES[i][2]); }
+    for (i = 0; i < CARDPOOL.length; i++) { add(CARDPOOL[i][1] + '!'); }
+    for (i = 0; i < PUZ.length; i++) { add(PUZ[i][1] + '!'); }
+    for (i = 0; i < COLORS.length; i++) { add(COLORS[i][1]); }
+    ['Svart', 'Viskelær', 'Ny tegning!', 'Hurra!', 'Hurra! Du klarte det!', 'Det er', 'Finn bokstaven', 'Prøv igjen.',
+     'Prøv igjen. Tell med fingeren!', 'Dra bilen og samle stjerner!', 'Les ordet, og trykk på riktig bilde',
+     'Legg bitene på plass!', 'Stav ordet', 'pluss', 'minus', 'ganger', 'er', 'er?',
+     'Trykk på himmelen!', 'Tittei!', 'Hurra! Du fant alle!', 'Hvem gjemmer seg i buskene?', 'Dra formen til riktig skygge!',
+     'Gi dyrene mat!', 'Nam nam!', 'Nei takk!', 'Skrap og se hva som gjemmer seg!', 'Fang frukten med bjørnen!',
+     'Klapp dyrene før de gjemmer seg!', 'Tiden er ute!', 'Du fikk', 'stjerner!', 'poeng!', 'Ferdig!', 'Hjelp musa til jordbæret!',
+     'Hvem sin skygge er dette?', 'Hvilken passer ikke?', 'Den passer ikke!', 'Hva kommer etter?', 'Styr romskipet og skyt steinene!',
+     'Styr slangen til eplene!', 'Skyv bitene på plass!', 'Bare én av hver i hver rad, kolonne og boks!', 'Hva er klokka?'].forEach(add);
+    for (i = 0; i < SHAPES.length; i++) { add(SHAPES[i][1] + '!'); }
+    for (i = 0; i < FOODS.length; i++) { add(FOODS[i][2] + '!'); }
+    for (i = 0; i < ANIMALS.length; i++) { add(ANIMALS[i][1] + '!'); }
+    for (var hh = 1; hh <= 12; hh++) { var mm = [0, 30, 15, 45]; for (var q = 0; q < 4; q++) { add('Klokka er ' + clockLabel(hh, mm[q]).replace('klokka ', '')); } }
+    for (i = 0; i < GOOD.length; i++) { add(GOOD[i]); }
+    for (i = 0; i < ABC.length; i++) { var a = ABC[i]; add(a[0]); add(a[2] ? a[0] + '. ' + a[2] + '!' : a[0]); }
+    for (i = 0; i <= 100; i++) { add(NUM[i]); }
+    for (i = 0; i < THINGS.length; i++) { add('Hvor mange ' + THINGS[i][1] + '?'); }
+    for (i = 0; i < WORDS.length; i++) { add(WORDS[i][0].toLowerCase()); }
+    for (i = 0; i < LONGWORDS.length; i++) { add(LONGWORDS[i][0].toLowerCase()); }
+    return out.map(function (t) { return hid(t) + '\t' + t; });
+  };
+
+  /* ---------- home screen icon ---------- */
+  try {
+    var ic = document.createElement('canvas');
+    ic.width = ic.height = 180;
+    var g = ic.getContext('2d');
+    var gr = g.createLinearGradient(0, 0, 180, 180);
+    gr.addColorStop(0, '#ffd23d'); gr.addColorStop(1, '#ff6b6b');
+    g.fillStyle = gr; g.fillRect(0, 0, 180, 180);
+    g.font = '110px sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.fillText('🌈', 90, 98);
+    $('icon').href = ic.toDataURL('image/png');
+  } catch (e) {}
+})();
+</script>
+</body>
+</html>
