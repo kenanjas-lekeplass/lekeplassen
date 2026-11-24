@@ -7,6 +7,16 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Lekeplassen">
 <title>Lekeplassen</title>
+<script>
+  // always load files from the Lekeplassen folder, even if the address was saved without the last "/"
+  (function () {
+    var p = location.pathname;
+    if (/\/lekeplassen$/.test(p)) { location.replace(p + '/' + location.search + location.hash); }
+    var dir = p.replace(/[^\/]*$/, '');
+    if (/\/lekeplassen$/.test(p)) { dir = p + '/'; }
+    document.write('<base href="' + dir + '">');
+  })();
+</script>
 <link rel="apple-touch-icon" id="icon" href="">
 <style>
 *{margin:0;padding:0;-webkit-box-sizing:border-box;box-sizing:border-box;-webkit-tap-highlight-color:rgba(0,0,0,0);-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
