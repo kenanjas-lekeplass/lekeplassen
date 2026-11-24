@@ -293,6 +293,7 @@ var EMO_COLS = 11, EMO_ROWS = 11, EMO_LIST = ['\u23f0', '\u2601\ufe0f', '\u2614'
     window.speechSynthesis.onvoiceschanged = pickVoice;
   }
   function tts(text, done) {
+    dbg('TTS: ' + text.slice(0, 24));
     if (!window.speechSynthesis || !window.SpeechSynthesisUtterance) { if (done) { done(); } return; }
     try {
       if (!voice) { pickVoice(); }
@@ -307,20 +308,66 @@ var EMO_COLS = 11, EMO_ROWS = 11, EMO_LIST = ['\u23f0', '\u2601\ufe0f', '\u2614'
       window.speechSynthesis.speak(u);
     } catch (e) { if (done) { done(); } }
   }
-  // Voice clips play through one reusable <audio> element: on iOS it is unlocked by the first tap,
-  // and (unlike Web Audio) it is not silenced by the iPad's mute switch.
+  // Debug log: open the page with #debug at the end of the address to see what the audio does
+  var DEBUG = /debug/.test(location.hash), dbgEl = null;
+  function dbg(m) {
+    if (!DEBUG) { return; }
+    if (!dbgEl) {
+      dbgEl = document.createElement('div');
+      dbgEl.style.cssText = 'position:fixed;left:0;right:0;bottom:0;height:38%;overflow:hidden;background:rgba(0,0,0,.82);color:#7f7;font:14px Menlo,monospace;z-index:99999;padding:6px;pointer-events:none';
+      document.body.appendChild(dbgEl);
+    }
+    var d = document.createElement('div'); d.textContent = (new Date().toTimeString().slice(3, 8)) + ' ' + m;
+    dbgEl.insertBefore(d, dbgEl.firstChild);
+  }
+  // Voice clips: 1) one reusable <audio> element (not muted by the side switch),
+  // 2) if that fails: Web Audio, 3) last resort: the iPad's own speech voice.
   var SILENT = 'data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjYwLjE2LjEwMAAAAAAAAAAAAAAA//NwwAAAAAAAAAAAAEluZm8AAAAPAAAAFgAACbEAHR0dHSgoKCgoMzMzMz09PT09SEhISFNTU1NTXl5eXmlpaWlpc3Nzc35+fn5+iYmJiZSUlJSUnp6enp6pqamptLS0tLS/v7+/ysrKysrU1NTU39/f39/q6urq9fX19fX/////AAAAAExhdmM2MC4zMQAAAAAAAAAAAAAAACQELwAAAAAAAAmxyOFTSgAAAAAAAAAAAAAAAAD/80DEAAAAA0gAAAAATEFNRTMuMTAwVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQsRbAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQMSkAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVTEFNRTMuMTAwVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV//NCxKMAAANIAAAAAFVVVVVVVVVVVVVVVVVVVVVVVVVVTEFNRTMuMTAwVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV//NAxKQAAANIAAAAAFVVVVVVVVVVVVVVVVVVVVVVVVVMQU1FMy4xMDBVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVX/80LEowAAA0gAAAAAVVVVVVVVVVVVVVVVVVVVVVVVVVVMQU1FMy4xMDBVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVX/80DEpAAAA0gAAAAAVVVVVVVVVVVVVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQsSjAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQMSkAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVTEFNRTMuMTAwVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV//NCxKMAAANIAAAAAFVVVVVVVVVVVVVVVVVVVVVVVVVVTEFNRTMuMTAwVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV//NAxKQAAANIAAAAAFVVVVVVVVVVVVVVVVVVVVVVVVVMQU1FMy4xMDBVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVX/80LEowAAA0gAAAAAVVVVVVVVVVVVVVVVVVVVVVVVVVVMQU1FMy4xMDBVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVX/80DEpAAAA0gAAAAAVVVVVVVVVVVVVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQsSjAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQMSkAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVTEFNRTMuMTAwVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV//NCxKMAAANIAAAAAFVVVVVVVVVVVVVVVVVVVVVVVVVVTEFNRTMuMTAwVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV//NAxKQAAANIAAAAAFVVVVVVVVVVVVVVVVVVVVVVVVVMQU1FMy4xMDBVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVX/80LEowAAA0gAAAAAVVVVVVVVVVVVVVVVVVVVVVVVVVVMQU1FMy4xMDBVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVX/80DEpAAAA0gAAAAAVVVVVVVVVVVVVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQsSjAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQMSkAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV//NCxKMAAANIAAAAAFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV';
-  var vEl = null, vReady = false, missing = {}, gen = 0, vTimer = null;
-  function voiceEl() { if (!vEl) { vEl = document.createElement('audio'); vEl.preload = 'auto'; document.body.appendChild(vEl); } return vEl; }
+  var vEl = null, vReady = false, missing = {}, waFail = {}, gen = 0, vTimer = null, waSrc = null, clipBuf = {}, clipN = 0;
+  function voiceEl() {
+    if (!vEl) {
+      vEl = document.createElement('audio'); vEl.preload = 'auto';
+      document.body.appendChild(vEl);
+      if (DEBUG) {
+        var evs = ['playing', 'ended', 'stalled', 'suspend', 'abort', 'emptied', 'canplay'];
+        for (var i = 0; i < evs.length; i++) { (function (n) { vEl.addEventListener(n, function () { if (n !== 'suspend') { dbg('audio ' + n + ' ' + (vEl.src || '').slice(-14)); } }, false); })(evs[i]); }
+      }
+    }
+    return vEl;
+  }
   function unlockVoice() {
     if (vReady) { return; }
     vReady = true;
-    try { var a = voiceEl(); a.src = SILENT; var pr = a.play(); if (pr && pr['catch']) { pr['catch'](function () {}); } } catch (e) {}
+    dbg('unlock ' + navigator.userAgent.slice(13, 60));
+    try { var a = voiceEl(); a.src = SILENT; var pr = a.play(); if (pr && pr['catch']) { pr['catch'](function (e) { dbg('silent play rejected ' + e); }); } } catch (e) { dbg('silent play threw ' + e); }
   }
   function stopVoice() {
     clearTimeout(vTimer);
     if (vEl) { try { vEl.onended = null; vEl.onerror = null; vEl.pause(); } catch (e) {} }
+    if (waSrc) { try { if (waSrc.stop) { waSrc.stop(0); } else { waSrc.noteOff(0); } } catch (e) {} waSrc = null; }
     try { if (window.speechSynthesis && window.speechSynthesis.speaking) { window.speechSynthesis.cancel(); } } catch (e) {}
+  }
+  function webAudioClip(id, ok, fail) {
+    if (!actx || waFail[id]) { fail('no ctx'); return; }
+    function play(buf) {
+      var s = actx.createBufferSource(); s.buffer = buf; s.connect(actx.destination);
+      waSrc = s; if (s.start) { s.start(0); } else { s.noteOn(0); }
+      ok(buf.duration);
+    }
+    if (clipBuf[id]) { play(clipBuf[id]); return; }
+    var x = new XMLHttpRequest();
+    x.open('GET', 'lyd/' + id + '.mp3', true); x.responseType = 'arraybuffer';
+    x.onload = function () {
+      if ((x.status !== 200 && x.status !== 0) || !x.response) { waFail[id] = 1; fail('http ' + x.status); return; }
+      try {
+        actx.decodeAudioData(x.response, function (buf) {
+          if (clipN > 50) { clipBuf = {}; clipN = 0; }
+          clipBuf[id] = buf; clipN++; play(buf);
+        }, function () { waFail[id] = 1; fail('decode'); });
+      } catch (e) { fail('decode threw ' + e); }
+    };
+    x.onerror = function () { fail('xhr error'); };
+    x.send();
   }
   // say('tekst') or say(['del 1', 'del 2']) - parts are played one after another
   function say(parts) {
@@ -331,25 +378,30 @@ var EMO_COLS = 11, EMO_ROWS = 11, EMO_LIST = ['\u23f0', '\u2601\ufe0f', '\u2614'
       clearTimeout(vTimer);
       if (my !== gen || i >= parts.length) { return; }
       var t = parts[i++], id = hid(t);
-      if (missing[id] || !vReady) { tts(t, next); return; }
+      function viaWebAudio(why) {
+        dbg('html fail (' + why + ') -> webaudio ' + id);
+        webAudioClip(id, function (dur) { dbg('webaudio ok ' + id); vTimer = setTimeout(function () { if (my === gen) { next(); } }, dur * 1000 + 60); },
+          function (r) { dbg('webaudio fail ' + r + ' -> tts'); if (my === gen) { tts(t, next); } });
+      }
+      if (!vReady) { dbg('not unlocked -> tts'); tts(t, next); return; }
+      if (missing[id]) { viaWebAudio('known'); return; }
       var a = voiceEl(), done = false;
       function fin() { if (done || my !== gen) { return; } done = true; next(); }
       a.onended = fin;
       a.onerror = function () {
         if (done || my !== gen) { return; }
         var err = a.error;
-        // ignore errors that belong to an earlier clip we just interrupted
         if ((a.src || '').indexOf(id) === -1 || (err && err.code === 1)) { return; }
-        done = true;
-        if (err && err.code === 4) { missing[id] = 1; }
-        tts(t, next);
+        done = true; missing[id] = 1;
+        viaWebAudio('code ' + (err ? err.code : '?'));
       };
-      vTimer = setTimeout(fin, 7000);
+      vTimer = setTimeout(function () { if (!done && my === gen) { dbg('timeout ' + id); fin(); } }, 7000);
       try {
         a.src = 'lyd/' + id + '.mp3';
+        dbg('play ' + id + ' "' + t.slice(0, 18) + '"');
         var pr = a.play();
-        if (pr && pr['catch']) { pr['catch'](function () {}); }
-      } catch (e) { a.onerror(); }
+        if (pr && pr['catch']) { pr['catch'](function (e) { if (!done && my === gen && String(e).indexOf('Abort') === -1) { done = true; viaWebAudio('rejected ' + e); } }); }
+      } catch (e) { done = true; viaWebAudio('threw ' + e); }
     }
     next();
   }
