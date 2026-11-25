@@ -152,12 +152,23 @@ canvas{-webkit-transition:opacity .6s;transition:opacity .6s}
 @keyframes fall{0%{transform:translateY(0) rotate(0)}100%{transform:translateY(1250px) rotate(540deg)}}
 @-webkit-keyframes burst{0%{-webkit-transform:scale(.4);opacity:1}100%{-webkit-transform:scale(1.8);opacity:0}}
 @keyframes burst{0%{transform:scale(.4);opacity:1}100%{transform:scale(1.8);opacity:0}}
+
+/* Profiler, oppdrag, min side */
+.qtop{position:absolute;top:0;left:0;right:0;height:52%;text-align:center;overflow:hidden}
+.qprompt{min-height:100px;padding:6px 30px;display:-webkit-box;display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center;-webkit-justify-content:center;justify-content:center;font-size:42px;font-weight:800}
+.qprompt.xl{font-size:96px;min-height:150px}.qprompt.long{font-size:36px;line-height:1.35;min-height:260px;font-weight:700}
+.qprompt .speaker{-webkit-flex-shrink:0;flex-shrink:0}
+.qvis{padding:0 30px;line-height:1.15}
+.qopts{position:absolute;top:52%;left:0;right:0;bottom:0;height:auto}
+.qo{margin:14px;border-radius:40px;background:#fff;text-align:center;font-weight:800;overflow:hidden;box-shadow:0 9px 0 rgba(0,0,0,.14);display:-webkit-box;display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center;-webkit-justify-content:center;justify-content:center}
+.qo.ok{box-shadow:0 0 0 8px #3cc76b}
+.qgrp{padding:8px;line-height:1.1}
 </style>
 </head>
 <body>
 <div id="home" class="screen on">
   <div class="hero">🌈 Lekeplassen</div>
-  <div style="position:absolute;right:10px;bottom:6px;font-size:12px;color:#c9bfa9">v7</div>
+  <div style="position:absolute;right:10px;bottom:6px;font-size:12px;color:#c9bfa9">v9</div>
   <div class="tiles wrap" id="tiles"></div>
 </div>
 <div id="fx"></div>
@@ -358,8 +369,14 @@ var EMO_COLS = 11, EMO_ROWS = 11, EMO_LIST = ['\u23f0', '\u2601\ufe0f', '\u2614'
     dbg('unlock ' + navigator.userAgent.slice(13, 60));
     try { var a = voiceEl(); a.src = SILENT; var pr = a.play(); if (pr && pr['catch']) { pr['catch'](function (e) { dbg('silent play rejected ' + e); }); } } catch (e) { dbg('silent play threw ' + e); }
   }
+  // Sperre: mens stemmen snakker, tar knappene ikke imot trykk (se onTap)
+  var speaking = false, speakSafety = null;
+  function setSpeaking(on, parts) {
+    speaking = on; clearTimeout(speakSafety);
+    if (on) { speakSafety = setTimeout(function () { speaking = false; }, 4000 + 3500 * parts); }
+  }
   function stopVoice() {
-    clearTimeout(vTimer);
+    clearTimeout(vTimer); setSpeaking(false);
     if (vEl) { try { vEl.onended = null; vEl.onerror = null; vEl.pause(); } catch (e) {} }
     if (waSrc) { try { if (waSrc.stop) { waSrc.stop(0); } else { waSrc.noteOff(0); } } catch (e) {} waSrc = null; }
     try { if (window.speechSynthesis && window.speechSynthesis.speaking) { window.speechSynthesis.cancel(); } } catch (e) {}
@@ -391,9 +408,11 @@ var EMO_COLS = 11, EMO_ROWS = 11, EMO_LIST = ['\u23f0', '\u2601\ufe0f', '\u2614'
     if (typeof parts === 'string') { parts = [parts]; }
     var my = ++gen, i = 0;
     stopVoice();
+    setSpeaking(true, parts.length);
     function next() {
       clearTimeout(vTimer);
-      if (my !== gen || i >= parts.length) { return; }
+      if (my !== gen) { return; }
+      if (i >= parts.length) { setTimeout(function () { if (my === gen) { setSpeaking(false); } }, 150); return; }
       var t = parts[i++], id = hid(t);
       function viaWebAudio(why) {
         dbg('html fail (' + why + ') -> webaudio ' + id);
@@ -424,16 +443,33 @@ var EMO_COLS = 11, EMO_ROWS = 11, EMO_LIST = ['\u23f0', '\u2601\ufe0f', '\u2614'
   }
 
   /* ---------- touch ---------- */
-  var lastTouch = 0;
-  function onTap(node, fn) {
+  var lastTouch = 0, lastTap = 0, multi = false;
+  // Bare ett trykk om gangen: ingen trykk mens stemmen snakker, ikke med flere fingre,
+  // og minst 400 ms mellom to trykk. always=true (hjem-knappen) slipper alltid gjennom.
+  function tapAllowed(e, always) {
+    if (always) { return true; }
+    if (speaking) { return false; }
+    if (multi || (e && e.touches && e.touches.length > 0)) { return false; }
+    if (now() - lastTap < 400) { return false; }
+    return true;
+  }
+  function onTap(node, fn, always) {
     node.addEventListener('touchend', function (e) {
-      e.preventDefault(); lastTouch = now(); unlock(); fn.call(node, e);
+      e.preventDefault(); lastTouch = now(); unlock();
+      if (!tapAllowed(e, always)) { return; }
+      lastTap = now(); fn.call(node, e);
     }, false);
     node.addEventListener('click', function (e) {
       if (now() - lastTouch < 700) { return; }
-      unlock(); fn.call(node, e);
+      unlock();
+      if (!tapAllowed(e, always)) { return; }
+      lastTap = now(); fn.call(node, e);
     }, false);
   }
+  // to fingre på skjermen samtidig = ingen trykk teller før alle fingrene er løftet
+  document.addEventListener('touchstart', function (e) { if (e.touches && e.touches.length > 1) { multi = true; } }, true);
+  document.addEventListener('touchend', function (e) { if (!e.touches || e.touches.length === 0) { setTimeout(function () { multi = false; }, 0); } }, false);
+  document.addEventListener('touchcancel', function () { setTimeout(function () { multi = false; }, 0); }, false);
   document.addEventListener('touchmove', function (e) { e.preventDefault(); }, { passive: false });
   document.addEventListener('touchend', unlock, false);
 
@@ -546,13 +582,14 @@ var EMO_COLS = 11, EMO_ROWS = 11, EMO_LIST = ['\u23f0', '\u2601\ufe0f', '\u2614'
   }
 
   /* ---------- screens ---------- */
+  function remix(grid) { var k = [], i; for (i = 0; i < grid.childNodes.length; i++) { k.push(grid.childNodes[i]); } shuffle(k); for (i = 0; i < k.length; i++) { grid.appendChild(k[i]); } }
   var starters = {}, stoppers = {}, current = 'home', currentGroup = null;
   function makeScreen(id, title) {
     var s = el('div', 'screen');
     s.id = 's-' + id;
     var top = el('div', 'top');
     var back = el('div', 'back', '🏠');
-    onTap(back, function () { sfx.tap(); show(id === 'grp' || !currentGroup ? 'home' : 'grp'); });
+    onTap(back, function () { sfx.tap(); stopVoice(); gen++; show(id === 'grp' || !currentGroup ? 'home' : 'grp'); }, true);
     top.appendChild(back);
     var tt = el('div', 'title', title); tt.id = id + 'Title'; top.appendChild(tt);
     var right = el('div', 'right');
@@ -577,7 +614,7 @@ var EMO_COLS = 11, EMO_ROWS = 11, EMO_LIST = ['\u23f0', '\u2601\ufe0f', '\u2614'
     ['🐶', 'Hunden', 'voff voff'], ['🐱', 'Katten', 'mjau'], ['🐮', 'Kua', 'møøø'],
     ['🐷', 'Grisen', 'nøff nøff'], ['🐑', 'Sauen', 'bæææ'], ['🐓', 'Hanen', 'kykeliky'],
     ['🐴', 'Hesten', 'knegg knegg'], ['🐸', 'Frosken', 'kvekk kvekk'], ['🐘', 'Elefanten', 'tuuut'],
-    ['🐒', 'Apen', 'u u a a'], ['🐭', 'Musa', 'pip pip'], ['🐻', 'Bjørnen', 'brumm brumm']
+    ['🐒', 'Apekatten', 'u u a a'], ['🐭', 'Musa', 'pip pip'], ['🐻', 'Bjørnen', 'brumm brumm']
   ];
   var ABC = [
     ['A', '🐒', 'Apekatt'], ['B', '🚗', 'Bil'], ['C', '🎻', 'Cello'], ['D', '🚪', 'Dør'],
@@ -637,13 +674,21 @@ var EMO_COLS = 11, EMO_ROWS = 11, EMO_LIST = ['\u23f0', '\u2601\ufe0f', '\u2614'
     matte: ['🔢', 'Matte', '#fff0b3'], gange: ['✖️', 'Gangetabell', '#ffd0e8'], klokka: ['⏰', 'Klokka', '#c5f0ee'],
     stav: ['✏️', 'Stav ordet', '#c9f2d4'], les2: ['📚', 'Les ordet', '#d8e4ff'], sudoku: ['🍇', 'Sudoku', '#e2d4ff'],
     skyv: ['🔀', 'Skyvepuslespill', '#ffd6a8'], romskip: ['🚀', 'Romskip', '#c5d0ff'], slange: ['🐍', 'Slange', '#d4f0b0'],
+    vippe: ['⚽', 'Vippeballen', '#bfe3ff'], finndyr: ['🐰', 'Finn dyret', '#d4f0b0'], finnbil: ['🚓', 'Finn bilen', '#c5d0ff'],
+    farger: ['🌈', 'Farger', '#ffe7a3'], storst: ['🐘', 'Størst og minst', '#c5f0ee'], flest: ['🐞', 'Flest og færrest', '#ffd0e8'],
+    forbok: ['🍓', 'Første bokstav', '#ffc4b8'], alfa: ['➡️', 'Alfabetet', '#d8e4ff'], liten: ['👓', 'Store og små', '#fff0b3'],
+    ord: ['❓', 'Hvilket ord?', '#c9f2d4'], rekke: ['🚂', 'Tallrekker', '#ffd6a8'], rekke2: ['🚂', 'Tallrekker', '#ffd6a8'], rekke3: ['🚂', 'Tallrekker', '#ffd6a8'],
+    hull: ['🎩', 'Manglende bokstav', '#e2d4ff'], tall: ['⬆️', 'Størst tall', '#bfe3ff'], dobbelt: ['🍒', 'Dobbelt og halvparten', '#ffc4b8'],
+    partall: ['👟', 'Partall og oddetall', '#d4f0b0'], tekst: ['🏫', 'Tekstoppgaver', '#ffe7a3'], tekst2: ['🏫', 'Tekstoppgaver', '#ffe7a3'],
+    hode: ['🌟', 'Hoderegning', '#c5f0ee'], dele: ['🍉', 'Dele', '#d8e4ff'], miks: ['🎉', 'Mattemiks', '#ffd0e8'], ordmiks: ['💛', 'Ordmiks', '#c9f2d4'],
     huske2: ['🃏', 'Huskespill', '#c5f0ee'], pus4: ['🖼️', 'Puslespill', '#ffc4b8'], pus5: ['🖼️', 'Puslespill', '#e2d4ff']
   };
   var LEVELTAG = { pus2: '4 biter', pus3: '9 biter', pus4: '16 biter', pus5: '25 biter', huske: '12 kort', huske2: '20 kort', former: '3', former2: '5' };
   var GROUPS = [
-    { e: '🐣', t: '1 til 3 år', label: '1–3 år', c: '#ffd6a8', games: ['biler', 'dyr', 'xylo', 'ballong', 'fyr', 'tittei', 'former', 'mate', 'skrape', 'kjor', 'pus2', 'tegne'] },
-    { e: '🎒', t: '4 til 6 år', label: '4–6 år', c: '#c9f2d4', games: ['abc', 'finn', 'telle', 'pluss', 'les', 'monster', 'skygge', 'odd', 'fang', 'muldvarp', 'labyrint', 'former2', 'huske', 'pus3', 'tegne'] },
-    { e: '🚀', t: '7 til 8 år', label: '7–8 år', c: '#d8e4ff', games: ['matte', 'gange', 'klokka', 'stav', 'les2', 'sudoku', 'skyv', 'romskip', 'slange', 'huske2', 'pus4', 'pus5'] }
+    { e: '🐣', t: '1 til 3 år', label: '1–3 år', c: '#ffd6a8', games: ['biler', 'dyr', 'finndyr', 'finnbil', 'farger', 'storst', 'xylo', 'ballong', 'fyr', 'tittei', 'former', 'mate', 'skrape', 'kjor', 'vippe', 'pus2', 'tegne'] },
+    { e: '🎒', t: '4 til 6 år', label: '4–6 år', c: '#c9f2d4', games: ['abc', 'finn', 'forbok', 'alfa', 'liten', 'les', 'ord', 'telle', 'flest', 'pluss', 'rekke', 'monster', 'skygge', 'odd', 'fang', 'muldvarp', 'labyrint', 'vippe', 'former2', 'huske', 'pus3', 'tegne'] },
+    { e: '🚀', t: '7 til 8 år', label: '7–8 år', c: '#d8e4ff', games: ['matte', 'gange', 'tall', 'dobbelt', 'partall', 'rekke2', 'tekst', 'klokka', 'stav', 'les2', 'hull', 'ordmiks', 'sudoku', 'skyv', 'romskip', 'slange', 'huske2', 'pus4'] },
+    { e: '⚡', t: '9 til 10 år', label: '9–10 år', c: '#ffd0e8', games: ['hode', 'gange', 'dele', 'rekke3', 'tekst2', 'miks', 'klokka', 'stav', 'hull', 'ordmiks', 'sudoku', 'skyv', 'romskip', 'slange', 'huske2', 'pus5'] }
   ];
   (function buildHome() {
     var tiles = $('tiles');
@@ -655,6 +700,7 @@ var EMO_COLS = 11, EMO_ROWS = 11, EMO_LIST = ['\u23f0', '\u2601\ufe0f', '\u2614'
         tiles.appendChild(t);
       })(GROUPS[i]);
     }
+    tiles.style.left = '160px'; tiles.style.right = '160px';
     function fitHome() { fitTiles(tiles.childNodes, tiles.clientWidth - 20, tiles.clientHeight - 20, 340); }
     fitHome();
     window.addEventListener('resize', function () { fitHome(); if (current === 'grp' && starters.grp) { starters.grp(); } }, false);
@@ -697,6 +743,7 @@ var EMO_COLS = 11, EMO_ROWS = 11, EMO_LIST = ['\u23f0', '\u2601\ufe0f', '\u2614'
         grid.appendChild(b);
       })(ANIMALS[i], i);
     }
+    starters.dyr = function () { remix(grid); };
   })();
 
   /* ---------- 2. Ballonger ---------- */
@@ -1060,6 +1107,7 @@ var EMO_COLS = 11, EMO_ROWS = 11, EMO_LIST = ['\u23f0', '\u2601\ufe0f', '\u2614'
         grid.appendChild(b);
       })(VEHICLES[i]);
     }
+    starters.biler = function () { remix(grid); };
   })();
 
   /* ---------- Kjør bilen ---------- */
@@ -1147,13 +1195,17 @@ var EMO_COLS = 11, EMO_ROWS = 11, EMO_LIST = ['\u23f0', '\u2601\ufe0f', '\u2614'
   var WORDS = [
     ['BIL', '🚗'], ['SOL', '🌞'], ['IS', '🍦'], ['KATT', '🐱'], ['HUND', '🐶'], ['FISK', '🐟'],
     ['TOG', '🚂'], ['MUS', '🐭'], ['GRIS', '🐷'], ['KU', '🐮'], ['BUSS', '🚌'], ['FLY', '✈️'],
-    ['BÅT', '🚢'], ['EPLE', '🍎'], ['HUS', '🏠'], ['BALL', '⚽'], ['SAU', '🐑'], ['MÅNE', '🌙']
+    ['BÅT', '🚢'], ['EPLE', '🍎'], ['HUS', '🏠'], ['BALL', '⚽'], ['SAU', '🐑'], ['MÅNE', '🌙'],
+    ['TRE', '🌳'], ['SKY', '☁️'], ['SKO', '👟'], ['BOK', '📖'], ['DØR', '🚪'], ['ULV', '🐺'], ['HANE', '🐓'], ['NESE', '👃'],
+    ['ØRE', '👂'], ['PÆRE', '🍐'], ['HATT', '🎩'], ['LYN', '⚡']
   ];
   var LONGWORDS = [
     ['APE', '🐒'], ['HEST', '🐴'], ['FROSK', '🐸'], ['BANAN', '🍌'], ['BJØRN', '🐻'], ['SKOLE', '🏫'],
     ['RAKETT', '🚀'], ['BLOMST', '🌸'], ['SYKKEL', '🚲'], ['KLOKKE', '⏰'], ['STJERNE', '⭐'], ['ELEFANT', '🐘'],
     ['REGNBUE', '🌈'], ['TRAKTOR', '🚜'], ['JORDBÆR', '🍓'], ['LASTEBIL', '🚚'], ['PARAPLY', '☔'], ['HELIKOPTER', '🚁'],
-    ['SNØMANN', '⛄'], ['PINGVIN', '🐧'], ['SKILPADDE', '🐢']
+    ['SNØMANN', '⛄'], ['PINGVIN', '🐧'], ['SKILPADDE', '🐢'], ['KANIN', '🐰'], ['PANDA', '🐼'], ['SLANGE', '🐍'],
+    ['KJOLE', '👗'], ['BUKSE', '👖'], ['DRUER', '🍇'], ['BALLONG', '🎈'], ['FIOLIN', '🎻'], ['HONNING', '🍯'], ['KYLLING', '🐥'],
+    ['APPELSIN', '🍊'], ['BRANNBIL', '🚒'], ['AMBULANSE', '🚑']
   ];
 
   /* ---------- Les ordet (factory) ---------- */
@@ -1567,7 +1619,7 @@ var EMO_COLS = 11, EMO_ROWS = 11, EMO_LIST = ['\u23f0', '\u2601\ufe0f', '\u2614'
 
   /* ---------- Dra-og-slipp-matching (Former, Mate dyrene) ---------- */
   var SHAPES = [['🔴', 'Sirkel'], ['🔺', 'Trekant'], ['⭐', 'Stjerne'], ['🔷', 'Ruter'], ['🌙', 'Måne'], ['❤️', 'Hjerte'], ['☁️', 'Sky']];
-  var FOODS = [['🐶', '🍖', 'Hunden'], ['🐱', '🐟', 'Katten'], ['🐒', '🍌', 'Apen'], ['🐻', '🍯', 'Bjørnen'],
+  var FOODS = [['🐶', '🍖', 'Hunden'], ['🐱', '🐟', 'Katten'], ['🐒', '🍌', 'Apekatten'], ['🐻', '🍯', 'Bjørnen'],
     ['🐮', '🌾', 'Kua'], ['🐸', '🐛', 'Frosken'], ['🐴', '🍎', 'Hesten'], ['🐼', '🎋', 'Pandaen']];
   function makeMatch(id, title, intro, n, getPairs, okSay, badSay, shadowTargets) {
     var body = makeScreen(id, title);
@@ -2466,6 +2518,443 @@ var EMO_COLS = 11, EMO_ROWS = 11, EMO_LIST = ['\u23f0', '\u2601\ufe0f', '\u2614'
   makePuzzle('pus4', 4, false);
   makePuzzle('pus5', 5, false);
 
+  /* =====================================================================
+     NYE SPILL: spørrespill som fornyer seg, og Vippeballen. Ingenting lagres.
+     ===================================================================== */
+  /* ---------- Oppgavegeneratorer: hvert spørsmål trekkes på nytt, så ingen runde blir lik ---------- */
+  function pickN(arr, n) { return shuffle(arr.slice()).slice(0, n); }
+  function clampLv(l) { return Math.max(1, Math.min(6, l)); }
+  function between(a, b) { return a + rnd(b - a + 1); }
+  function byLv(lv, list) { return list[Math.min(list.length, lv) - 1]; }
+  // n forskjellige tallsvar rundt det riktige, slik at det lønner seg å tenke
+  function numOpts(ans, n, near, min) {
+    var out = [ans], guard = 0, span = Math.max(2, near || 2);
+    if (min === undefined) { min = 0; }
+    while (out.length < n && guard++ < 200) {
+      var v = ans + (rnd(2) ? 1 : -1) * (guard < 60 && near ? (rnd(2) ? near : 1 + rnd(span)) : 1 + rnd(span * 2));
+      if (v >= min && out.indexOf(v) === -1) { out.push(v); }
+    }
+    var o = [];
+    for (var i = 0; i < out.length; i++) { o.push({ h: String(out[i]), ok: out[i] === ans }); }
+    return shuffle(o);
+  }
+  function emoRow(e, n, px) { var s = ''; for (var i = 0; i < n; i++) { s += '<span style="font-size:' + px + 'px;margin:0 3px">' + e + '</span>'; } return s; }
+  function sayNum(n) { return n >= 0 && n <= 100 ? NUM[n] : null; }
+  function sayCalc(a, word, b) { return sayNum(a) && sayNum(b) ? [NUM[a], word, NUM[b], 'er?'] : null; }
+  function lowFirst(s) { return s.charAt(0).toLowerCase() + s.slice(1); }
+  var LETTERPOOL = null;
+  function letterPool() {
+    if (LETTERPOOL) { return LETTERPOOL; }
+    var o = [], seen = {}, i;
+    function add(w, e, clip) { var k = w.toUpperCase(); if (!e || e.length < 2 || seen[k] || seen[e]) { return; } seen[k] = 1; seen[e] = 1; o.push({ L: k.charAt(0), e: e, w: k, c: clip }); }
+    for (i = 0; i < WORDS.length; i++) { add(WORDS[i][0], WORDS[i][1], WORDS[i][0].toLowerCase()); }
+    for (i = 0; i < LONGWORDS.length; i++) { add(LONGWORDS[i][0], LONGWORDS[i][1], LONGWORDS[i][0].toLowerCase()); }
+    for (i = 0; i < ABC.length; i++) { add(ABC[i][2], ABC[i][1], null); }
+    LETTERPOOL = o; return o;
+  }
+  // Ting barnet kan bli bedt om å finne: bestemt form, så «Hvor er traktoren?» blir riktig norsk
+  var DEF = { Bil: 'Bilen', Brannbil: 'Brannbilen', Politibil: 'Politibilen', Ambulanse: 'Ambulansen', Buss: 'Bussen', Lastebil: 'Lastebilen',
+    Traktor: 'Traktoren', Tog: 'Toget', Fly: 'Flyet', Helikopter: 'Helikopteret', 'Båt': 'Båten', Sykkel: 'Sykkelen', Rakett: 'Raketten',
+    Regnbue: 'Regnbuen', 'Jordbær': 'Jordbæret' };
+  var DYRPOOL = null, BILPOOL = null;
+  function dyrPool() {
+    if (!DYRPOOL) { DYRPOOL = []; for (var i = 0; i < ANIMALS.length; i++) { DYRPOOL.push([ANIMALS[i][0], ANIMALS[i][1]]); } DYRPOOL.push(['🐧', 'Pingvinen'], ['🐢', 'Skilpadden'], ['🐼', 'Pandaen']); }
+    return DYRPOOL;
+  }
+  function bilPool() {
+    if (!BILPOOL) { BILPOOL = []; for (var i = 0; i < VEHICLES.length; i++) { BILPOOL.push([VEHICLES[i][0], DEF[VEHICLES[i][1]] || VEHICLES[i][1]]); } }
+    return BILPOOL;
+  }
+  function hvorGen(id, poolFn) {
+    return { id: id,
+      pick: function (lv) { var all = poolFn(); return [lv, all[rnd(all.length)][1]]; },
+      build: function (a) {
+        var t = null, i, others = [], CP = poolFn();
+        for (i = 0; i < CP.length; i++) { if (CP[i][1] === a[1]) { t = CP[i]; } else { others.push(CP[i]); } }
+        if (!t) { return null; }
+        var n = a[0] < 2 ? 2 : (a[0] < 3 ? 3 : (a[0] < 5 ? 4 : 6)), pick = pickN(others, n - 1), o = [{ h: t[0], ok: true }];
+        for (i = 0; i < pick.length; i++) { o.push({ h: pick[i][0] }); }
+        return { t: 'Hvor er ' + lowFirst(t[1]) + '?', say: ['Hvor er', t[1] + '!'], o: shuffle(o), emo: true };
+      } };
+  }
+  var WORDPOOL = null;
+  function wordPool() {
+    if (!WORDPOOL) { WORDPOOL = []; var p = letterPool(); for (var i = 0; i < p.length; i++) { if (p[i].c) { WORDPOOL.push(p[i]); } } }
+    return WORDPOOL;
+  }
+  var NAMES = ['Ola', 'Kari', 'Nora', 'Emil', 'Sara', 'Jonas', 'Ida', 'Liam', 'Maja', 'Oskar'];
+  var STUFF = ['epler', 'baller', 'kjeks', 'klosser', 'blyanter', 'klinkekuler', 'klistremerker', 'boller'];
+  // Hver generator: pick(nivå) trekker en oppgave som en liten liste, build(liste) lager spørsmålet.
+  // Lista lagres når barnet svarer feil, så akkurat den oppgaven kan komme tilbake senere.
+  var GENS = [
+    hvorGen('finndyr', function () { return dyrPool(); }),
+    hvorGen('finnbil', function () { return bilPool(); }),
+    { id: 'ord',
+      pick: function (lv) { var p = wordPool(); return [lv, p[rnd(p.length)].w]; },
+      build: function (a) {
+        var p = wordPool(), t = null, i, same = [], rest = [], n = a[0] < 2 ? 3 : 4;
+        for (i = 0; i < p.length; i++) { if (p[i].w === a[1]) { t = p[i]; } else if (p[i].L === a[1].charAt(0)) { same.push(p[i]); } else { rest.push(p[i]); } }
+        if (!t) { return null; }
+        // på høyere nivå begynner flere av de gale ordene på samme bokstav, så hele ordet må leses
+        var d = a[0] > 2 ? pickN(same, n - 1) : [];
+        d = d.concat(pickN(rest, n - 1 - d.length));
+        var o = [{ h: t.w, ok: true }];
+        for (i = 0; i < d.length; i++) { o.push({ h: d[i].w }); }
+        return { t: 'Hvilket ord er dette?', say: [t.c], vis: '<span style="font-size:170px">' + t.e + '</span>', o: shuffle(o) };
+      } },
+    { id: 'hull',
+      pick: function (lv) { var p = wordPool(), w = p[rnd(p.length)].w; return [lv, w, lv < 2 ? 0 : rnd(w.length)]; },
+      build: function (a) {
+        var p = wordPool(), t = null, i, n = a[0] < 3 ? 3 : 4, V = 'AEIOUYÆØÅ', K = 'BDFGHJKLMNPRSTV';
+        for (i = 0; i < p.length; i++) { if (p[i].w === a[1]) { t = p[i]; } }
+        if (!t) { return null; }
+        var ch = t.w.charAt(a[2]), src = (V.indexOf(ch) !== -1 ? V : K).split(''), cand = [];
+        for (i = 0; i < src.length; i++) { if (src[i] !== ch) { cand.push(src[i]); } }
+        cand = pickN(cand, n - 1);
+        var o = [{ h: ch, ok: true }];
+        for (i = 0; i < cand.length; i++) { o.push({ h: cand[i] }); }
+        var shown = '';
+        for (i = 0; i < t.w.length; i++) { shown += i === a[2] ? '<span style="color:#ff6b6b">_</span>' : t.w.charAt(i); }
+        return { t: 'Hvilken bokstav mangler?', say: [t.c, 'Hvilken bokstav mangler?'],
+          vis: '<span style="font-size:110px;vertical-align:middle">' + t.e + '</span> <span style="font-size:' + (t.w.length > 7 ? 64 : 90) + 'px;font-weight:800;letter-spacing:6px;vertical-align:middle">' + shown + '</span>', o: shuffle(o) };
+      } },
+    { id: 'alfa',
+      pick: function (lv) { var m = lv < 2 ? 2 : rnd(3); return [lv, between(0, ABC.length - 3), m]; },
+      build: function (a) {
+        var vis = '', i, ans = ABC[a[1] + a[2]][0], n = a[0] < 2 ? 3 : 4, cand = [];
+        for (i = 0; i < 3; i++) { vis += '<div class="mslot' + (i === a[2] ? ' q' : '') + '" style="display:inline-block;width:130px;height:120px;line-height:120px;font-size:76px;font-weight:800">' + (i === a[2] ? '?' : ABC[a[1] + i][0]) + '</div>'; }
+        for (i = Math.max(0, a[1] - 3); i < Math.min(ABC.length, a[1] + 7); i++) { if (i < a[1] || i > a[1] + 2) { cand.push(ABC[i][0]); } }
+        cand = pickN(cand, n - 1);
+        var o = [{ h: ans, ok: true }];
+        for (i = 0; i < cand.length; i++) { o.push({ h: cand[i] }); }
+        return { t: 'Hvilken bokstav mangler?', say: ['Hvilken bokstav mangler?'], vis: vis, o: shuffle(o) };
+      } },
+    { id: 'liten',
+      pick: function (lv) { return [lv, ABC[rnd(ABC.length)][0], lv > 2 && rnd(2) ? 1 : 0]; },
+      build: function (a) {
+        var i, n = a[0] < 2 ? 3 : 4, cand = [], up = a[2] === 1;
+        for (i = 0; i < ABC.length; i++) { if (ABC[i][0] !== a[1]) { cand.push(ABC[i][0]); } }
+        cand = pickN(cand, n - 1);
+        var o = [{ h: up ? a[1] : a[1].toLowerCase(), ok: true }];
+        for (i = 0; i < cand.length; i++) { o.push({ h: up ? cand[i] : cand[i].toLowerCase() }); }
+        return { t: up ? 'Finn stor bokstav' : 'Finn liten bokstav', say: ['Finn bokstaven', a[1]],
+          vis: '<span style="font-size:190px;font-weight:800;color:#ff6b6b;line-height:1">' + (up ? a[1].toLowerCase() : a[1]) + '</span>', o: shuffle(o) };
+      } },
+    { id: 'farge',
+      pick: function (lv) { return [lv, COLORS[rnd(COLORS.length)][1]]; },
+      build: function (a) {
+        var t = null, i, others = [];
+        for (i = 0; i < COLORS.length; i++) { if (COLORS[i][1] === a[1]) { t = COLORS[i]; } else { others.push(COLORS[i]); } }
+        if (!t) { return null; }
+        var n = a[0] < 2 ? 2 : (a[0] < 3 ? 3 : 4), pick = pickN(others, n - 1), o = [{ h: '', bg: t[0], ok: true }];
+        for (i = 0; i < pick.length; i++) { o.push({ h: '', bg: pick[i][0] }); }
+        return { t: 'Hvor er ' + t[1].toLowerCase() + '?', say: ['Hvor er', t[1]], o: shuffle(o) };
+      } },
+    { id: 'storst',
+      pick: function (lv) { return [lv, CARDPOOL[rnd(CARDPOOL.length)][0], lv > 1 && rnd(2) ? 'm' : 's']; },
+      build: function (a) {
+        var n = a[0] < 2 ? 2 : (a[0] < 4 ? 3 : 4), sizes = a[0] < 3 ? [50, 90, 130, 170] : [70, 95, 120, 145];
+        var pick = pickN(sizes, n), best = pick[0], i, o = [];
+        for (i = 1; i < n; i++) { if (a[2] === 's' ? pick[i] > best : pick[i] < best) { best = pick[i]; } }
+        for (i = 0; i < n; i++) { o.push({ h: '<span style="font-size:' + pick[i] + 'px">' + a[1] + '</span>', ok: pick[i] === best, raw: true }); }
+        var q = a[2] === 's' ? 'Hvilken er størst?' : 'Hvilken er minst?';
+        return { t: q, say: [q], o: o };
+      } },
+    { id: 'telle',
+      pick: function (lv) { return [lv, rnd(THINGS.length), between(1, Math.min(15, 3 + 2 * lv))]; },
+      build: function (a) {
+        var th = THINGS[a[1]];
+        return { t: 'Hvor mange ' + th[1] + '?', say: ['Hvor mange ' + th[1] + '?'], vis: emoRow(th[0], a[2], a[2] > 10 ? 54 : 70), o: numOpts(a[2], a[0] < 2 ? 3 : 4, 1, 1) };
+      } },
+    { id: 'flest',
+      pick: function (lv) {
+        var n = lv < 3 ? 2 : 3, max = byLv(lv, [6, 8, 9, 10, 12, 12]), gap = lv < 2 ? 3 : (lv < 4 ? 2 : 1), c = [], guard = 0;
+        while (c.length < n && guard++ < 300) {
+          var v = between(1, max), ok = true;
+          for (var i = 0; i < c.length; i++) { if (Math.abs(c[i] - v) < gap) { ok = false; } }
+          if (ok) { c.push(v); }
+        }
+        return [lv, lv > 2 && rnd(2) ? 'f' : 'm', rnd(THINGS.length)].concat(c);
+      },
+      build: function (a) {
+        var c = a.slice(3), best = c[0], i, o = [];
+        for (i = 1; i < c.length; i++) { if (a[1] === 'm' ? c[i] > best : c[i] < best) { best = c[i]; } }
+        for (i = 0; i < c.length; i++) { o.push({ h: '<div class="qgrp">' + emoRow(THINGS[a[2]][0], c[i], 38) + '</div>', ok: c[i] === best, raw: true, wide: true }); }
+        var q = a[1] === 'm' ? 'Hvor er det flest?' : 'Hvor er det færrest?';
+        return { t: q, say: [q], o: o };
+      } },
+    { id: 'bokstav',
+      pick: function (lv) { var p = letterPool(); return [lv, lv > 2 && rnd(2) ? 'l' : 'p', p[rnd(p.length)].w]; },
+      build: function (a) {
+        var p = letterPool(), t = null, i, others = [], o = [], n = a[0] < 2 ? 3 : 4;
+        for (i = 0; i < p.length; i++) { if (p[i].w === a[2]) { t = p[i]; } }
+        if (!t) { return null; }
+        if (a[1] === 'p') {
+          for (i = 0; i < p.length; i++) { if (p[i].L !== t.L) { others.push(p[i]); } }
+          others = pickN(others, n - 1); o.push({ h: t.e, ok: true });
+          for (i = 0; i < others.length; i++) { o.push({ h: others[i].e }); }
+          return { t: 'Hva begynner på ' + t.L + '?', say: ['Hva begynner på', t.L], o: shuffle(o), emo: true };
+        }
+        var letters = [];
+        for (i = 0; i < ABC.length; i++) { if (ABC[i][0] !== t.L) { letters.push(ABC[i][0]); } }
+        letters = pickN(letters, n - 1); o.push({ h: t.L, ok: true });
+        for (i = 0; i < letters.length; i++) { o.push({ h: letters[i] }); }
+        return { t: 'Hvilken bokstav begynner ordet på?', say: t.c ? [t.c, 'Hvilken bokstav?'] : ['Hvilken bokstav?'], vis: '<span style="font-size:150px">' + t.e + '</span>', o: shuffle(o) };
+      } },
+    { id: 'pluss',
+      pick: function (lv) { var max = byLv(lv, [5, 10, 20, 50, 100, 200]), a = between(lv > 2 ? Math.floor(max / 5) : 1, max - 1); return [lv, a, between(1, max - a)]; },
+      build: function (a) {
+        var s = a[1] + a[2], vis = '';
+        if (s <= 10) { vis = emoRow('🍎', a[1], 56) + '<span style="font-size:50px;margin:0 14px">➕</span>' + emoRow('🍎', a[2], 56); }
+        return { t: a[1] + ' + ' + a[2] + ' = ?', big: true, say: sayCalc(a[1], 'pluss', a[2]), vis: vis, o: numOpts(s, 4, s > 20 ? 10 : 1, 0) };
+      } },
+    { id: 'minus',
+      pick: function (lv) { var max = byLv(lv, [5, 10, 20, 50, 100, 200]), a = between(lv > 2 ? Math.floor(max / 2) : 2, max); return [lv, a, between(1, a - 1)]; },
+      build: function (a) { var d = a[1] - a[2]; return { t: a[1] + ' − ' + a[2] + ' = ?', big: true, say: sayCalc(a[1], 'minus', a[2]), o: numOpts(d, 4, a[1] > 20 ? 10 : 1, 0) }; } },
+    { id: 'rekke',
+      pick: function (lv) {
+        var step = byLv(lv, [1, 1, 2, rnd(2) ? 5 : 10, between(3, 4), -between(2, 5)]);
+        var start = lv === 1 ? between(1, 5) : (step < 0 ? between(30, 60) : between(1, lv === 2 ? 20 : 30));
+        return [lv, start, step, lv === 1 ? 4 : between(1, 4)];
+      },
+      build: function (a) {
+        var vis = '', ans = a[1] + a[2] * a[3];
+        for (var i = 0; i < 5; i++) { vis += '<div class="mslot' + (i === a[3] ? ' q' : '') + '" style="display:inline-block;width:120px;font-size:54px;font-weight:800">' + (i === a[3] ? '?' : (a[1] + a[2] * i)) + '</div>'; }
+        return { t: 'Hvilket tall mangler?', say: ['Hvilket tall mangler?'], vis: vis, o: numOpts(ans, 4, Math.abs(a[2]), 0) };
+      } },
+    { id: 'tall',
+      pick: function (lv) {
+        var max = byLv(lv, [10, 20, 100, 100, 1000, 10000]), n = lv < 2 ? 3 : 4, c = [], guard = 0, base = lv > 3 ? between(Math.floor(max / 10), max - Math.floor(max / 10)) : 0;
+        while (c.length < n && guard++ < 300) {
+          var v = lv > 3 ? Math.max(1, base + between(-Math.floor(max / 20), Math.floor(max / 20))) : between(1, max);
+          if (c.indexOf(v) === -1) { c.push(v); }
+        }
+        return [lv, lv > 1 && rnd(2) ? 'm' : 's'].concat(c);
+      },
+      build: function (a) {
+        var c = a.slice(2), best = c[0], i, o = [];
+        for (i = 1; i < c.length; i++) { if (a[1] === 's' ? c[i] > best : c[i] < best) { best = c[i]; } }
+        for (i = 0; i < c.length; i++) { o.push({ h: String(c[i]), ok: c[i] === best }); }
+        var q = a[1] === 's' ? 'Hvilket tall er størst?' : 'Hvilket tall er minst?';
+        return { t: q, say: [q], o: o };
+      } },
+    { id: 'dobbelt',
+      pick: function (lv) { var mx = byLv(lv, [5, 10, 20, 50, 100, 250]), n = between(lv > 2 ? Math.floor(mx / 4) : 1, mx); return [lv, lv > 1 && rnd(2) ? 'h' : 'd', n]; },
+      build: function (a) {
+        var d = a[1] === 'd', n = d ? a[2] : a[2] * 2, ans = d ? a[2] * 2 : a[2], ph = d ? 'Hva er det dobbelte av' : 'Hva er halvparten av';
+        return { t: ph + ' ' + n + '?', say: sayNum(n) ? [ph, NUM[n]] : null, o: numOpts(ans, 4, ans > 20 ? 10 : 2, 0) };
+      } },
+    { id: 'gange',
+      pick: function (lv) { var tab = byLv(lv, [[1, 2, 10], [2, 5, 10], [3, 4], [6, 7], [8, 9], [11, 12]]); return [lv, tab[rnd(tab.length)], between(lv > 2 ? 2 : 1, 10)]; },
+      build: function (a) {
+        var x = a[1], y = a[2], sw = rnd(2), l = sw ? y : x, r = sw ? x : y;
+        return { t: l + ' × ' + r + ' = ?', big: true, say: sayCalc(l, 'ganger', r), o: numOpts(x * y, 4, x, 0) };
+      } },
+    { id: 'partall',
+      pick: function (lv) {
+        var max = byLv(lv, [10, 20, 50, 100, 500, 1000]), even = rnd(2), c = [], guard = 0;
+        var t = between(1, Math.floor(max / 2)) * 2 - (even ? 0 : 1);
+        while (c.length < 3 && guard++ < 300) { var v = between(1, Math.floor(max / 2)) * 2 - (even ? 1 : 0); if (c.indexOf(v) === -1) { c.push(v); } }
+        return [lv, even ? 'p' : 'o', t].concat(c);
+      },
+      build: function (a) {
+        var o = [{ h: String(a[2]), ok: true }];
+        for (var i = 3; i < a.length; i++) { o.push({ h: String(a[i]) }); }
+        var q = a[1] === 'p' ? 'Hvilket tall er et partall?' : 'Hvilket tall er et oddetall?';
+        return { t: q, say: [q], o: shuffle(o) };
+      } },
+    { id: 'dele',
+      pick: function (lv) { var tab = byLv(lv, [[2, 10], [2, 5, 10], [3, 4], [6, 7], [8, 9], [11, 12]]); return [lv, tab[rnd(tab.length)], between(1, 10)]; },
+      build: function (a) { var p = a[1] * a[2]; return { t: p + ' : ' + a[1] + ' = ?', big: true, say: sayCalc(p, 'delt på', a[1]), o: numOpts(a[2], 4, 1, 0) }; } },
+    { id: 'tekst',
+      pick: function (lv) {
+        var tp = byLv(lv, [[0, 1], [0, 1], [0, 1, 2], [1, 2, 3], [2, 3, 4], [3, 4]]), t = tp[rnd(tp.length)], max = byLv(lv, [10, 20, 30, 50, 100, 200]), a, b, c = 0;
+        if (t === 0) { a = between(1, max - 1); b = between(1, max - a); }
+        else if (t === 1) { a = between(2, max); b = between(1, a - 1); }
+        else if (t === 2 || t === 3) { a = between(2, lv > 4 ? 10 : 5); b = between(2, lv > 4 ? 10 : 5); }
+        else { a = between(5, max); b = between(1, max); c = between(1, a + b - 1); }
+        return [lv, t, rnd(NAMES.length), rnd(STUFF.length), a, b, c];
+      },
+      build: function (a) {
+        var N = NAMES[a[2]], S = STUFF[a[3]], x = a[4], y = a[5], z = a[6], t, ans;
+        if (a[1] === 0) { t = N + ' har ' + x + ' ' + S + '. ' + N + ' får ' + y + ' til. Hvor mange ' + S + ' har ' + N + ' nå?'; ans = x + y; }
+        else if (a[1] === 1) { t = N + ' har ' + x + ' ' + S + '. ' + N + ' gir bort ' + y + '. Hvor mange ' + S + ' har ' + N + ' igjen?'; ans = x - y; }
+        else if (a[1] === 2) { t = x + ' barn får ' + y + ' ' + S + ' hver. Hvor mange ' + S + ' blir det til sammen?'; ans = x * y; }
+        else if (a[1] === 3) { t = (x * y) + ' ' + S + ' deles likt på ' + y + ' barn. Hvor mange ' + S + ' får hvert barn?'; ans = x; }
+        else { t = N + ' har ' + x + ' ' + S + ', får ' + y + ' til og gir bort ' + z + '. Hvor mange ' + S + ' har ' + N + ' igjen?'; ans = x + y - z; }
+        return { t: t, long: true, say: null, o: numOpts(ans, 4, ans > 20 ? 10 : 1, 0) };
+      } }
+  ];
+  function genById(id) { for (var i = 0; i < GENS.length; i++) { if (GENS[i].id === id) { return GENS[i]; } } return null; }
+
+  /* ---------- Spørrespill (fabrikk): ett spill = én eller flere generatorer ----------
+     Nivået starter på «start» hver gang spillet åpnes, går opp etter tre riktige på rad og ned etter to feil.
+     Oppgaver barnet bommer på, kommer tilbake litt senere i samme økt. Ingenting lagres. */
+  function makeQuiz(id, genIds, start) {
+    var body = makeScreen(id, INFO[id][1]);
+    var top = el('div', 'qtop'), opts = el('div', 'qopts wrap');
+    body.appendChild(top); body.appendChild(opts);
+    var stars = 0, qn = 0, lv = {}, run = {}, miss = [], lastKey = '', lastGen = '', spec, q, locked, missed, timer = null;
+    function head() { $(id + 'Right').innerHTML = '⭐ ' + stars; }
+    function ask() { if (q && q.say && current === id) { say(q.say); } }
+    function key(s) { return s.g + ':' + s.a.slice(1).join(','); }
+    function choose() {
+      var gid, s, tries = 0;
+      if (miss.length && qn - miss[0].at >= 3 && rnd(100) < 60) { s = miss.shift(); return { g: s.g, a: s.a, rep: true }; }
+      do {
+        gid = genIds[rnd(genIds.length)];
+        if (genIds.length > 2 && gid === lastGen && tries < 5) { s = null; continue; }
+        s = { g: gid, a: genById(gid).pick(lv[gid]) };
+      } while ((!s || key(s) === lastKey) && tries++ < 25);
+      return s;
+    }
+    function next() {
+      clearTimeout(timer);
+      if (current !== id) { return; }
+      var tries = 0; q = null;
+      while (!q && tries++ < 20) { spec = choose(); q = genById(spec.g).build(spec.a); }
+      lastKey = key(spec); lastGen = spec.g; qn++; locked = false; missed = false; head();
+      top.innerHTML = '';
+      var pr = el('div', 'qprompt' + (q.big ? ' xl' : '') + (q.long ? ' long' : ''), '<span>' + q.t + '</span>');
+      if (q.say) { var sp = el('div', 'speaker', '🔊'); onTap(sp, function () { bounce(sp); ask(); }); pr.appendChild(sp); }
+      top.appendChild(pr);
+      if (q.vis) { top.appendChild(el('div', 'qvis', q.vis)); }
+      opts.innerHTML = '';
+      var n = q.o.length, wide = q.o[0].wide, per = n > 4 ? 3 : n, rows = n > 4 ? 2 : 1;
+      var w = Math.min(wide ? 300 : 210, Math.floor((body.clientWidth - 40) / per) - 30), h = Math.min(w, rows > 1 ? 130 : 210);
+      if (rows > 1) { w = Math.min(w, 200); }
+      for (var i = 0; i < n; i++) {
+        (function (o, idx) {
+          var c = el('div', 'qo', o.h);
+          c.style.width = w + 'px'; c.style.height = h + 'px';
+          if (rows > 1) { c.style.margin = '8px 30px'; }
+          if (o.bg) { c.style.background = o.bg; }
+          else if (!o.raw && !q.emo) { c.style.background = PALETTE[(idx * 3 + qn) % PALETTE.length]; c.style.color = '#fff'; }
+          if (!o.raw) {
+            var L = o.h.length, fs = q.emo ? h * 0.6 : (L > 4 ? Math.min(h * 0.3, w * 1.25 / L) : (L > 3 ? h * 0.3 : (L > 2 ? h * 0.4 : h * 0.55)));
+            c.style.fontSize = Math.round(fs) + 'px'; c.style.lineHeight = h + 'px';
+          }
+          onTap(c, function () { answer(o, c); });
+          opts.appendChild(c);
+        })(q.o[i], i);
+      }
+      timer = setTimeout(ask, 450);
+    }
+    function answer(o, node) {
+      if (locked || node.getAttribute('data-off')) { return; }
+      var g = spec.g;
+      if (o.ok) {
+        locked = true; bounce(node); sfx.good(); node.className += ' ok';
+        if (!missed) {
+          stars++; run[g] = Math.max(0, run[g]) + 1;
+          if (run[g] >= 3 && lv[g] < 6) { lv[g]++; run[g] = 0; }
+          if (stars % 5 === 0) { party(); }
+        }
+        head();
+        say(GOOD[rnd(GOOD.length)]);
+        timer = setTimeout(next, 1500);
+      } else {
+        bounce(node, 'wobble'); sfx.soft(); node.setAttribute('data-off', '1'); node.style.opacity = '0.3';
+        if (!missed) {
+          missed = true; run[g] = Math.min(0, run[g]) - 1;
+          if (run[g] <= -2 && lv[g] > 1) { lv[g]--; run[g] = 0; }
+          if (!spec.rep && miss.length < 6) { miss.push({ g: spec.g, a: spec.a.slice(), at: qn }); }
+        }
+        say('Prøv igjen.');
+      }
+    }
+    starters[id] = function () {
+      stars = 0; qn = 0; miss = []; lastKey = ''; lastGen = '';
+      for (var i = 0; i < genIds.length; i++) { lv[genIds[i]] = start; run[genIds[i]] = 0; }
+      next();
+    };
+    stoppers[id] = function () { clearTimeout(timer); q = null; };
+  }
+  makeQuiz('finndyr', ['finndyr'], 1);
+  makeQuiz('finnbil', ['finnbil'], 1);
+  makeQuiz('farger', ['farge'], 1);
+  makeQuiz('storst', ['storst'], 1);
+  makeQuiz('flest', ['flest'], 1);
+  makeQuiz('forbok', ['bokstav'], 1);
+  makeQuiz('alfa', ['alfa'], 1);
+  makeQuiz('liten', ['liten'], 1);
+  makeQuiz('ord', ['ord'], 1);
+  makeQuiz('rekke', ['rekke'], 1);
+  makeQuiz('hull', ['hull'], 2);
+  makeQuiz('tall', ['tall'], 2);
+  makeQuiz('dobbelt', ['dobbelt'], 2);
+  makeQuiz('partall', ['partall'], 1);
+  makeQuiz('rekke2', ['rekke'], 3);
+  makeQuiz('tekst', ['tekst'], 1);
+  makeQuiz('hode', ['pluss', 'minus'], 4);
+  makeQuiz('dele', ['dele'], 1);
+  makeQuiz('rekke3', ['rekke'], 5);
+  makeQuiz('tekst2', ['tekst'], 4);
+  makeQuiz('miks', ['pluss', 'minus', 'gange', 'dele', 'rekke', 'tall', 'dobbelt', 'partall', 'tekst'], 4);
+  makeQuiz('ordmiks', ['ord', 'hull', 'bokstav', 'alfa', 'liten'], 3);
+
+  /* ---------- Vippeballen: vipp iPaden, samle stjerner (eller dra med fingeren) ---------- */
+  (function () {
+    var body = makeScreen('vippe', 'Vippeballen');
+    var box = fill(el('div')); box.style.background = '#cfeec0'; box.style.overflow = 'hidden'; body.appendChild(box);
+    var cv = el('canvas'); box.appendChild(cv);
+    var C = null, stop = null, ball = null, home = null, stars = [], holes = [], lvl = 1, tilt = { x: 0, y: 0 }, finger = null, flip = 1, busy = false;
+    var spBall = sprite('⚽', 64), spStar = sprite('⭐', 56);
+    try { if (window.localStorage.getItem('lekeplassen.vippe.flip') === '1') { flip = -1; } } catch (e) {}
+    var fb = el('div', 'speaker', '🔁'); fb.style.position = 'absolute'; fb.style.right = '14px'; fb.style.bottom = '14px'; box.appendChild(fb);
+    onTap(fb, function () { bounce(fb); sfx.tap(); flip = -flip; try { window.localStorage.setItem('lekeplassen.vippe.flip', flip < 0 ? '1' : '0'); } catch (e) {} }, true);
+    function onMotion(e) {
+      var a = e.accelerationIncludingGravity; if (!a || a.x === null || a.x === undefined) { return; }
+      var o = window.orientation || 0, x, y;
+      if (o === 90) { x = -a.y; y = -a.x; } else if (o === -90) { x = a.y; y = a.x; } else if (o === 180) { x = -a.x; y = a.y; } else { x = a.x; y = -a.y; }
+      tilt.x = x * flip; tilt.y = y * flip;
+    }
+    function far(x, y, list, d) { for (var i = 0; i < list.length; i++) { var dx = list[i].x - x, dy = list[i].y - y; if (dx * dx + dy * dy < d * d) { return false; } } return true; }
+    function setup() {
+      busy = false; stars = []; holes = [];
+      home = { x: C.w / 2, y: C.h / 2 }; ball = { x: home.x, y: home.y, vx: 0, vy: 0 };
+      var ns = Math.min(8, 2 + lvl), nh = Math.min(7, lvl - 1), guard = 0, x, y;
+      while (stars.length < ns && guard++ < 500) { x = between(60, C.w - 60); y = between(60, C.h - 60); if (far(x, y, stars.concat([home]), 130)) { stars.push({ x: x, y: y }); } }
+      guard = 0;
+      while (holes.length < nh && guard++ < 500) { x = between(70, C.w - 70); y = between(70, C.h - 70); if (far(x, y, stars.concat(holes, [home]), 120)) { holes.push({ x: x, y: y }); } }
+      $('vippeRight').innerHTML = 'Nivå ' + lvl;
+    }
+    function step(dt) {
+      if (!C) { return; }
+      var g = C.g, i, dx, dy;
+      if (!busy) {
+        var ax = tilt.x * 110, ay = tilt.y * 110;
+        if (finger) { ax += (finger.x - ball.x) * 5; ay += (finger.y - ball.y) * 5; }
+        ball.vx = (ball.vx + ax * dt) * 0.985; ball.vy = (ball.vy + ay * dt) * 0.985;
+        ball.x += ball.vx * dt; ball.y += ball.vy * dt;
+        if (ball.x < 30) { ball.x = 30; ball.vx = -ball.vx * 0.4; } if (ball.x > C.w - 30) { ball.x = C.w - 30; ball.vx = -ball.vx * 0.4; }
+        if (ball.y < 30) { ball.y = 30; ball.vy = -ball.vy * 0.4; } if (ball.y > C.h - 30) { ball.y = C.h - 30; ball.vy = -ball.vy * 0.4; }
+        for (i = stars.length - 1; i >= 0; i--) { dx = stars[i].x - ball.x; dy = stars[i].y - ball.y; if (dx * dx + dy * dy < 48 * 48) { stars.splice(i, 1); sfx.pop(); } }
+        for (i = 0; i < holes.length; i++) { dx = holes[i].x - ball.x; dy = holes[i].y - ball.y; if (dx * dx + dy * dy < 30 * 30) { sfx.soft(); ball.x = home.x; ball.y = home.y; ball.vx = ball.vy = 0; } }
+        if (!stars.length) {
+          busy = true; party(); sfx.good(); say('Hurra!'); lvl++;
+          setTimeout(function () { if (current === 'vippe') { setup(); } }, 1800);
+        }
+      }
+      g.clearRect(0, 0, C.w, C.h);
+      for (i = 0; i < holes.length; i++) { g.fillStyle = '#3b3b4f'; g.beginPath(); g.arc(holes[i].x, holes[i].y, 34, 0, Math.PI * 2); g.fill(); g.fillStyle = '#23232f'; g.beginPath(); g.arc(holes[i].x, holes[i].y + 4, 26, 0, Math.PI * 2); g.fill(); }
+      for (i = 0; i < stars.length; i++) { drawSprite(g, spStar, stars[i].x, stars[i].y); }
+      drawSprite(g, spBall, ball.x, ball.y);
+    }
+    pointer(box, function (x, y, ph) { finger = ph === 'end' ? null : { x: x, y: y }; });
+    starters.vippe = function () {
+      lvl = 1; tilt.x = tilt.y = 0; finger = null;
+      C = setupCanvas(cv, box); setup();
+      window.addEventListener('devicemotion', onMotion, false);
+      stop = loop(step);
+      say('Vipp iPaden og samle stjernene!');
+    };
+    stoppers.vippe = function () { if (stop) { stop(); stop = null; } window.removeEventListener('devicemotion', onMotion, false); };
+  })();
+
+
+  if (DEBUG) { window.__lek = { GENS: GENS, speaking: function () { return speaking; } }; }
+
   /* ---------- every phrase the games can say (used to make voice clips) ---------- */
   window.__phrases = function () {
     var out = [], seen = {};
@@ -2486,6 +2975,11 @@ var EMO_COLS = 11, EMO_ROWS = 11, EMO_LIST = ['\u23f0', '\u2601\ufe0f', '\u2614'
      'Klapp dyrene før de gjemmer seg!', 'Tiden er ute!', 'Du fikk', 'stjerner!', 'poeng!', 'Ferdig!', 'Hjelp musa til jordbæret!',
      'Hvem sin skygge er dette?', 'Hvilken passer ikke?', 'Den passer ikke!', 'Hva kommer etter?', 'Styr romskipet og skyt steinene!',
      'Styr slangen til eplene!', 'Skyv bitene på plass!', 'Bare én av hver i hver rad, kolonne og boks!', 'Hva er klokka?'].forEach(add);
+    ['Hvor er', 'Hvilken er størst?', 'Hvilken er minst?', 'Hvor er det flest?', 'Hvor er det færrest?', 'Hva begynner på',
+     'Hvilken bokstav?', 'Hvilket tall mangler?', 'Hvilket tall er størst?', 'Hvilket tall er minst?', 'Hva er det dobbelte av',
+     'Hva er halvparten av', 'Hvilket tall er et partall?', 'Hvilket tall er et oddetall?', 'delt på', 'Hvilken bokstav mangler?',
+     'Vipp iPaden og samle stjernene!'].forEach(add);
+    (function () { var fp = dyrPool().concat(bilPool()); for (var z = 0; z < fp.length; z++) { add(fp[z][1] + '!'); } })();
     for (i = 0; i < SHAPES.length; i++) { add(SHAPES[i][1] + '!'); }
     for (i = 0; i < FOODS.length; i++) { add(FOODS[i][2] + '!'); }
     for (i = 0; i < ANIMALS.length; i++) { add(ANIMALS[i][1] + '!'); }
