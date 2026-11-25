@@ -106,11 +106,21 @@ canvas{-webkit-transition:opacity .6s;transition:opacity .6s}
 .burst{position:absolute;font-size:80px;pointer-events:none;-webkit-animation:burst .6s forwards;animation:burst .6s forwards}
 
 /* Drawing */
-#palette{position:absolute;top:0;left:0;bottom:0;width:100px;display:-webkit-box;display:-webkit-flex;display:flex;-webkit-flex-direction:column;flex-direction:column;-webkit-align-items:center;align-items:center;-webkit-justify-content:center;justify-content:center}
-.sw{border-radius:50%;border:5px solid #fff;box-shadow:0 4px 0 rgba(0,0,0,.15);margin:3px 0;text-align:center}
+#palette,.palette{position:absolute;top:0;left:0;bottom:0;width:150px;display:-webkit-box;display:-webkit-flex;display:flex;-webkit-flex-direction:column;flex-direction:column;-webkit-flex-wrap:wrap;flex-wrap:wrap;-webkit-align-items:center;align-items:center;-webkit-align-content:center;align-content:center;-webkit-justify-content:center;justify-content:center}
+.sw{border-radius:50%;border:5px solid #fff;box-shadow:0 4px 0 rgba(0,0,0,.15);margin:3px 4px;text-align:center}
 .sw.sel{border-color:#3b3b4f}
-#canvasBox{position:absolute;top:0;left:100px;right:16px;bottom:16px;background:#fff;border-radius:26px;overflow:hidden;box-shadow:0 6px 0 rgba(0,0,0,.1)}
-#canvas{display:block}
+#canvasBox,.cbox{position:absolute;top:0;left:150px;right:16px;bottom:16px;background:#fff;border-radius:26px;overflow:hidden;box-shadow:0 6px 0 rgba(0,0,0,.1)}
+#canvas,.cbox canvas{display:block}
+.cbox .fhint{position:absolute;top:10px;right:10px;border-radius:18px;background:#fdf6e3;box-shadow:0 3px 0 rgba(0,0,0,.1)}
+.fbtn{position:absolute;bottom:12px;width:60px;height:60px;border-radius:30px;background:#fdf6e3;font-size:32px;line-height:60px;text-align:center;box-shadow:0 4px 0 rgba(0,0,0,.14)}
+.fpick{position:absolute;top:0;left:0;right:0;bottom:0;background:#fef6e4;z-index:5;display:none}
+.ftabs{position:absolute;top:0;left:8px;right:8px;height:72px;white-space:nowrap;text-align:center}
+.ftab{display:inline-block;height:56px;margin:6px 5px;padding:0 16px 0 8px;border-radius:20px;background:#fff;font-size:20px;font-weight:800;line-height:56px;box-shadow:0 4px 0 rgba(0,0,0,.12);vertical-align:top}
+.ftab canvas{display:inline-block;vertical-align:middle;margin-right:4px}
+.ftab.sel{background:#ffd23d}
+.fgrid{position:absolute;top:78px;left:0;right:0;bottom:0;height:auto}
+.fthumb{margin:6px;border-radius:22px;background:#fff;box-shadow:0 5px 0 rgba(0,0,0,.12);display:-webkit-box;display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center;-webkit-justify-content:center;justify-content:center}
+.fwait{font-size:30px;font-weight:800;padding-top:120px;width:100%;text-align:center}
 
 /* ABC */
 #abcShow{height:210px;text-align:center;display:-webkit-box;display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center;-webkit-justify-content:center;justify-content:center}
@@ -168,7 +178,7 @@ canvas{-webkit-transition:opacity .6s;transition:opacity .6s}
 <body>
 <div id="home" class="screen on">
   <div class="hero">🌈 Lekeplassen</div>
-  <div style="position:absolute;right:10px;bottom:6px;font-size:12px;color:#c9bfa9">v9</div>
+  <div style="position:absolute;right:10px;bottom:6px;font-size:12px;color:#c9bfa9">v10</div>
   <div class="tiles wrap" id="tiles"></div>
 </div>
 <div id="fx"></div>
@@ -663,7 +673,7 @@ var EMO_COLS = 11, EMO_ROWS = 11, EMO_LIST = ['\u23f0', '\u2601\ufe0f', '\u2614'
   /* ---------- home: age groups ---------- */
   var INFO = {
     biler: ['🚒', 'Biler', '#ffd6a8'], dyr: ['🐶', 'Dyrelyder', '#ffc4b8'], ballong: ['🎈', 'Ballonger', '#bfe3ff'],
-    kjor: ['🚗', 'Kjør bilen', '#d4f0b0'], tegne: ['🎨', 'Tegne', '#ffe7a3'], pus2: ['🖼️', 'Puslespill', '#e2d4ff'],
+    kjor: ['🚗', 'Kjør bilen', '#d4f0b0'], tegne: ['🎨', 'Tegne', '#ffe7a3'], fargelegg: ['🌸', 'Fargelegg', '#ffd0e8'], pus2: ['🖼️', 'Puslespill', '#e2d4ff'],
     xylo: ['🎶', 'Xylofon', '#ffd0e8'], fyr: ['🎆', 'Fyrverkeri', '#c5d0ff'], tittei: ['🌳', 'Tittei', '#c9f2d4'],
     former: ['🔷', 'Former', '#fff0b3'], mate: ['🍌', 'Mate dyrene', '#ffd6a8'], skrape: ['✨', 'Skrapebilde', '#e2d4ff'],
     abc: ['🔤', 'ABC', '#c9f2d4'], finn: ['🔍', 'Finn bokstaven', '#e2d4ff'], telle: ['🍎', 'Telle', '#ffd0e8'],
@@ -685,9 +695,9 @@ var EMO_COLS = 11, EMO_ROWS = 11, EMO_LIST = ['\u23f0', '\u2601\ufe0f', '\u2614'
   };
   var LEVELTAG = { pus2: '4 biter', pus3: '9 biter', pus4: '16 biter', pus5: '25 biter', huske: '12 kort', huske2: '20 kort', former: '3', former2: '5' };
   var GROUPS = [
-    { e: '🐣', t: '1 til 3 år', label: '1–3 år', c: '#ffd6a8', games: ['biler', 'dyr', 'finndyr', 'finnbil', 'farger', 'storst', 'xylo', 'ballong', 'fyr', 'tittei', 'former', 'mate', 'skrape', 'kjor', 'vippe', 'pus2', 'tegne'] },
-    { e: '🎒', t: '4 til 6 år', label: '4–6 år', c: '#c9f2d4', games: ['abc', 'finn', 'forbok', 'alfa', 'liten', 'les', 'ord', 'telle', 'flest', 'pluss', 'rekke', 'monster', 'skygge', 'odd', 'fang', 'muldvarp', 'labyrint', 'vippe', 'former2', 'huske', 'pus3', 'tegne'] },
-    { e: '🚀', t: '7 til 8 år', label: '7–8 år', c: '#d8e4ff', games: ['matte', 'gange', 'tall', 'dobbelt', 'partall', 'rekke2', 'tekst', 'klokka', 'stav', 'les2', 'hull', 'ordmiks', 'sudoku', 'skyv', 'romskip', 'slange', 'huske2', 'pus4'] },
+    { e: '🐣', t: '1 til 3 år', label: '1–3 år', c: '#ffd6a8', games: ['biler', 'dyr', 'finndyr', 'finnbil', 'farger', 'storst', 'xylo', 'ballong', 'fyr', 'tittei', 'former', 'mate', 'skrape', 'kjor', 'vippe', 'pus2', 'tegne', 'fargelegg'] },
+    { e: '🎒', t: '4 til 6 år', label: '4–6 år', c: '#c9f2d4', games: ['abc', 'finn', 'forbok', 'alfa', 'liten', 'les', 'ord', 'telle', 'flest', 'pluss', 'rekke', 'monster', 'skygge', 'odd', 'fang', 'muldvarp', 'labyrint', 'vippe', 'former2', 'huske', 'pus3', 'tegne', 'fargelegg'] },
+    { e: '🚀', t: '7 til 8 år', label: '7–8 år', c: '#d8e4ff', games: ['matte', 'gange', 'tall', 'dobbelt', 'partall', 'rekke2', 'tekst', 'klokka', 'stav', 'les2', 'hull', 'ordmiks', 'sudoku', 'skyv', 'romskip', 'slange', 'huske2', 'pus4', 'fargelegg'] },
     { e: '⚡', t: '9 til 10 år', label: '9–10 år', c: '#ffd0e8', games: ['hode', 'gange', 'dele', 'rekke3', 'tekst2', 'miks', 'klokka', 'stav', 'hull', 'ordmiks', 'sudoku', 'skyv', 'romskip', 'slange', 'huske2', 'pus5'] }
   ];
   (function buildHome() {
@@ -808,6 +818,10 @@ var EMO_COLS = 11, EMO_ROWS = 11, EMO_LIST = ['\u23f0', '\u2601\ufe0f', '\u2614'
     stoppers.ballong = function () { clearInterval(B.timer); caf(B.raf); area.innerHTML = ''; B.list = []; };
   })();
 
+  var TEGNECOLS = [['#ff4d4d', 'Rød'], ['#ff9a2e', 'Oransje'], ['#ffd23d', 'Gul'], ['#9be36b', 'Lysegrønn'], ['#3cc76b', 'Grønn'],
+    ['#1f8a4c', 'Mørkegrønn'], ['#2ec4c4', 'Turkis'], ['#8fd3ff', 'Lyseblå'], ['#3d8bff', 'Blå'], ['#2a4fb5', 'Mørkeblå'],
+    ['#a45cff', 'Lilla'], ['#ff7fc8', 'Rosa'], ['#ffc9e3', 'Lyserosa'], ['#9b6235', 'Brun'], ['#d9a066', 'Lysebrun'],
+    ['#f6d2b0', 'Beige'], ['#9aa0a6', 'Grå'], ['#3b3b4f', 'Svart'], ['#ffffff', 'Viskelær']];
   /* ---------- 3. Tegne ---------- */
   (function () {
     var body = makeScreen('tegne', 'Tegne');
@@ -815,8 +829,7 @@ var EMO_COLS = 11, EMO_ROWS = 11, EMO_LIST = ['\u23f0', '\u2601\ufe0f', '\u2614'
     var box = el('div'); box.id = 'canvasBox';
     var cv = el('canvas'); cv.id = 'canvas';
     box.appendChild(cv); body.appendChild(pal); body.appendChild(box);
-    var cols = [['#ff4d4d', 'Rød'], ['#ff9a2e', 'Oransje'], ['#ffd23d', 'Gul'], ['#3cc76b', 'Grønn'],
-      ['#3d8bff', 'Blå'], ['#a45cff', 'Lilla'], ['#ff7fc8', 'Rosa'], ['#3b3b4f', 'Svart'], ['#ffffff', 'Viskelær']];
+    var cols = TEGNECOLS;
     var ctx = null, color = cols[0][0], pts = {}, dpr = window.devicePixelRatio || 1, sws = [];
 
     function setup() {
@@ -827,7 +840,7 @@ var EMO_COLS = 11, EMO_ROWS = 11, EMO_LIST = ['\u23f0', '\u2601\ufe0f', '\u2614'
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, w, h);
       ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-      var size = Math.min(66, Math.floor((pal.clientHeight - 10) / 10) - 6);
+      var size = Math.min(60, Math.floor((pal.clientHeight - 10) / Math.ceil(sws.length / 2)) - 6);
       for (var i = 0; i < sws.length; i++) {
         sws[i].style.width = size + 'px'; sws[i].style.height = size + 'px';
         sws[i].style.lineHeight = (size - 10) + 'px'; sws[i].style.fontSize = Math.round(size * 0.5) + 'px';
@@ -885,6 +898,186 @@ var EMO_COLS = 11, EMO_ROWS = 11, EMO_LIST = ['\u23f0', '\u2601\ufe0f', '\u2614'
     starters.tegne = function () { setTimeout(setup, 30); };
     window.addEventListener('orientationchange', function () { if (current === 'tegne') { setTimeout(setup, 300); } }, false);
   })();
+
+  /* ---------- Fargelegg: trykk farge på dyr, dinosaurer, dukker, biler og mer ----------
+     Arkene ligger i fargelegg.js (lastes først når spillet åpnes, så forsiden holder seg rask). */
+  (function () {
+    var body = makeScreen('fargelegg', 'Fargelegg');
+    var pal = el('div', 'palette'), box = el('div', 'cbox'), cv = el('canvas'), hint = el('canvas', 'fhint');
+    box.appendChild(cv); box.appendChild(hint); body.appendChild(pal); body.appendChild(box);
+    var pick = el('div', 'fpick'), tabs = el('div', 'ftabs'), grid = el('div', 'fgrid wrap');
+    pick.appendChild(tabs); pick.appendChild(grid); body.appendChild(pick);
+    var dpr = window.devicePixelRatio || 1, ctx = null, W = 0, H = 0, color = TEGNECOLS[0][0], sws = [];
+    var cat = 0, item = 0, regs = null, fills = [], bg = '#ffffff', geo = null, done = false, lastPop = 0, cache = {};
+    var INK = '#3b3b4f', ARGS = { M: 2, L: 2, H: 1, V: 1, C: 6, Q: 4, Z: 0 };
+
+    function parse(d) {
+      var t = d.match(/[MLHVCQZ]|-?\d*\.?\d+(?:e-?\d+)?/g) || [], out = [], i = 0, c = null, n, a, k;
+      while (i < t.length) {
+        if (ARGS[t[i]] !== undefined) { c = t[i++]; if (c === 'Z') { out.push(['Z']); continue; } }
+        else if (c === 'M') { c = 'L'; } else if (c === 'Z' || c === null) { i++; continue; }
+        n = ARGS[c]; a = [c];
+        for (k = 0; k < n; k++) { a.push(parseFloat(t[i++])); }
+        out.push(a);
+      }
+      return out;
+    }
+    function shapes(code, raw) {
+      if (!cache[code]) { var o = []; for (var i = 0; i < raw.length; i++) { o.push({ col: raw[i][0], fixed: raw[i][1] === 1, p: parse(raw[i][2]) }); } cache[code] = o; }
+      return cache[code];
+    }
+    function trace(g, p, ox, oy, k) {
+      var x = 0, y = 0, i, a;
+      g.beginPath();
+      for (i = 0; i < p.length; i++) {
+        a = p[i];
+        if (a[0] === 'M') { x = a[1]; y = a[2]; g.moveTo(ox + x * k, oy + y * k); }
+        else if (a[0] === 'L') { x = a[1]; y = a[2]; g.lineTo(ox + x * k, oy + y * k); }
+        else if (a[0] === 'H') { x = a[1]; g.lineTo(ox + x * k, oy + y * k); }
+        else if (a[0] === 'V') { y = a[1]; g.lineTo(ox + x * k, oy + y * k); }
+        else if (a[0] === 'C') { g.bezierCurveTo(ox + a[1] * k, oy + a[2] * k, ox + a[3] * k, oy + a[4] * k, ox + a[5] * k, oy + a[6] * k); x = a[5]; y = a[6]; }
+        else if (a[0] === 'Q') { g.quadraticCurveTo(ox + a[1] * k, oy + a[2] * k, ox + a[3] * k, oy + a[4] * k); x = a[3]; y = a[4]; }
+        else { g.closePath(); }
+      }
+    }
+    // tegner et ark: orig=true gir fasiten i originalfarger, ellers barnets farger med svart strek
+    function paintArk(g, list, ox, oy, k, orig, lw) {
+      g.lineJoin = 'round'; g.lineCap = 'round';
+      for (var i = 0; i < list.length; i++) {
+        trace(g, list[i].p, ox, oy, k);
+        g.fillStyle = orig ? list[i].col : (list[i].fixed ? INK : (fills[i] || '#ffffff'));
+        g.fill();
+        if (!orig) { g.strokeStyle = INK; g.lineWidth = lw; g.stroke(); }
+      }
+    }
+    function redraw() {
+      if (!ctx || !regs) { return; }
+      ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
+      paintArk(ctx, regs, geo.ox, geo.oy, geo.k, false, 2.5 * dpr);
+    }
+    function open(c, i) {
+      cat = c; item = i; done = false;
+      var it = window.FARGEARK[c].items[i];
+      regs = shapes(it[0], it[1]); fills = []; bg = '#ffffff';
+      pick.style.display = 'none';
+      var w = box.clientWidth, h = box.clientHeight;
+      W = cv.width = w * dpr; H = cv.height = h * dpr;
+      cv.style.width = w + 'px'; cv.style.height = h + 'px';
+      ctx = cv.getContext('2d');
+      var k = Math.min(W, H) * 0.9 / 36;
+      geo = { k: k, ox: (W - 36 * k) / 2, oy: (H - 36 * k) / 2 };
+      redraw();
+      var hs = 96 * dpr; hint.width = hint.height = hs; hint.style.width = hint.style.height = '96px';
+      var hg = hint.getContext('2d'); hg.clearRect(0, 0, hs, hs);
+      paintArk(hg, regs, hs * 0.06, hs * 0.06, hs * 0.88 / 36, true, 0);
+    }
+    function colourAt(cx, cy) {
+      if (!regs) { return; }
+      var r = cv.getBoundingClientRect(), x = (cx - r.left) * dpr, y = (cy - r.top) * dpr, hit = -1, i;
+      for (i = regs.length - 1; i >= 0; i--) {
+        if (regs[i].fixed) { continue; }
+        trace(ctx, regs[i].p, geo.ox, geo.oy, geo.k);
+        if (ctx.isPointInPath(x, y)) { hit = i; break; }
+      }
+      if (hit === -1) { if (bg === color) { return; } bg = color; }
+      else { if ((fills[hit] || '#ffffff') === color) { return; } fills[hit] = color; }
+      redraw();
+      if (now() - lastPop > 120) { lastPop = now(); sfx.pop(); }
+      if (!done) {
+        for (i = 0; i < regs.length; i++) { if (!regs[i].fixed && (!fills[i] || fills[i] === '#ffffff')) { return; } }
+        done = true; party(); sfx.good(); say('Hurra!');
+      }
+    }
+    function touch(e) { e.preventDefault(); for (var i = 0; i < e.changedTouches.length; i++) { colourAt(e.changedTouches[i].clientX, e.changedTouches[i].clientY); } }
+    cv.addEventListener('touchstart', touch, false);
+    cv.addEventListener('touchmove', touch, false);
+    var mdown = false;
+    cv.addEventListener('mousedown', function (e) { mdown = true; colourAt(e.clientX, e.clientY); }, false);
+    cv.addEventListener('mousemove', function (e) { if (mdown) { colourAt(e.clientX, e.clientY); } }, false);
+    window.addEventListener('mouseup', function () { mdown = false; }, false);
+
+    // palett
+    function select(sw, c) {
+      for (var i = 0; i < sws.length; i++) { sws[i].classList.remove('sel'); }
+      sw.classList.add('sel'); color = c[0]; bounce(sw); sfx.tap(); say(c[1]);
+    }
+    for (var i = 0; i < TEGNECOLS.length; i++) {
+      (function (c, first) {
+        var sw = el('div', 'sw' + (first ? ' sel' : ''), c[1] === 'Viskelær' ? '⬜' : '');
+        sw.style.background = c[0];
+        onTap(sw, function () { select(sw, c); }, true);
+        pal.appendChild(sw); sws.push(sw);
+      })(TEGNECOLS[i], i === 0);
+    }
+    var clr = el('div', 'sw', '🗑'); clr.style.background = '#eee';
+    onTap(clr, function () { bounce(clr); sfx.pop(); if (regs) { fills = []; bg = '#ffffff'; done = false; redraw(); } }, true);
+    pal.appendChild(clr); sws.push(clr);
+    function sizePal() {
+      var size = Math.min(60, Math.floor((pal.clientHeight - 10) / Math.ceil(sws.length / 2)) - 6);
+      for (var i = 0; i < sws.length; i++) {
+        sws[i].style.width = size + 'px'; sws[i].style.height = size + 'px';
+        sws[i].style.lineHeight = (size - 10) + 'px'; sws[i].style.fontSize = Math.round(size * 0.5) + 'px';
+      }
+    }
+
+    // bildevelger
+    function thumb(list, px) {
+      var c = el('canvas'); c.width = c.height = px * dpr; c.style.width = c.style.height = px + 'px';
+      paintArk(c.getContext('2d'), list, px * dpr * 0.05, px * dpr * 0.05, px * dpr * 0.9 / 36, true, 0);
+      return c;
+    }
+    function showCat(c) {
+      cat = c;
+      var A = window.FARGEARK, i;
+      for (i = 0; i < tabs.childNodes.length; i++) { tabs.childNodes[i].className = 'ftab' + (i === c ? ' sel' : ''); }
+      grid.innerHTML = '';
+      var n = A[c].items.length, gw = grid.clientWidth - 50, gh = grid.clientHeight - 16, best = 40, cols, s;
+      for (cols = 3; cols <= 12; cols++) { s = Math.floor(Math.min(gw / cols, gh / Math.ceil(n / cols))) - 12; if (s > best) { best = s; } }
+      best = Math.min(best, 150);
+      for (i = 0; i < n; i++) {
+        (function (idx) {
+          var t = el('div', 'fthumb'); t.style.width = t.style.height = best + 'px';
+          t.appendChild(thumb(shapes(A[c].items[idx][0], A[c].items[idx][1]), best - 12));
+          onTap(t, function () { sfx.tap(); open(c, idx); }, true);
+          grid.appendChild(t);
+        })(i);
+      }
+    }
+    function buildPicker() {
+      var A = window.FARGEARK; tabs.innerHTML = '';
+      for (var i = 0; i < A.length; i++) {
+        (function (c) {
+          var t = el('div', 'ftab');
+          t.appendChild(thumb(shapes(A[c].items[0][0], A[c].items[0][1]), 44));
+          t.appendChild(el('span', '', A[c].n));
+          onTap(t, function () { sfx.tap(); say(A[c].n); showCat(c); }, true);
+          tabs.appendChild(t);
+        })(i);
+      }
+      showCat(cat);
+    }
+    function showPicker() {
+      pick.style.display = 'block';
+      if (window.FARGEARK) { buildPicker(); return; }
+      grid.innerHTML = '<div class="fwait">Henter bildene …</div>';
+      var s = document.createElement('script');
+      s.src = 'fargelegg.js?v=10';
+      s.onload = function () { if (window.FARGEARK) { buildPicker(); } };
+      s.onerror = function () { grid.innerHTML = '<div class="fwait">Fant ikke fargelegg.js</div>'; };
+      document.getElementsByTagName('head')[0].appendChild(s);
+    }
+    var bPick = el('div', 'fbtn', '🖼️'), bNext = el('div', 'fbtn', '➡️');
+    onTap(bPick, function () { sfx.tap(); showPicker(); }, true);
+    onTap(bNext, function () {
+      if (!window.FARGEARK || !regs) { return; }
+      sfx.tap(); open(cat, (item + 1) % window.FARGEARK[cat].items.length);
+    }, true);
+    box.appendChild(bPick); box.appendChild(bNext);
+    bPick.style.left = '12px'; bNext.style.left = '84px';
+
+    starters.fargelegg = function () { sizePal(); regs = null; showPicker(); say('Velg et bilde!'); };
+  })();
+
 
   /* ---------- 4. ABC ---------- */
   (function () {
@@ -2967,6 +3160,8 @@ var EMO_COLS = 11, EMO_ROWS = 11, EMO_LIST = ['\u23f0', '\u2601\ufe0f', '\u2614'
     for (i = 0; i < CARDPOOL.length; i++) { add(CARDPOOL[i][1] + '!'); }
     for (i = 0; i < PUZ.length; i++) { add(PUZ[i][1] + '!'); }
     for (i = 0; i < COLORS.length; i++) { add(COLORS[i][1]); }
+    ['Lysegrønn', 'Mørkegrønn', 'Turkis', 'Lyseblå', 'Mørkeblå', 'Lyserosa', 'Brun', 'Lysebrun', 'Beige', 'Grå', 'Velg et bilde!',
+     'Dyr', 'Dinosaurer', 'Dukker', 'Kjøretøy', 'Mat', 'Natur'].forEach(add);
     ['Svart', 'Viskelær', 'Ny tegning!', 'Hurra!', 'Hurra! Du klarte det!', 'Det er', 'Finn bokstaven', 'Prøv igjen.',
      'Prøv igjen. Tell med fingeren!', 'Dra bilen og samle stjerner!', 'Les ordet, og trykk på riktig bilde',
      'Legg bitene på plass!', 'Stav ordet', 'pluss', 'minus', 'ganger', 'er', 'er?',
